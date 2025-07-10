@@ -1,0 +1,6 @@
+services:
+  tresdos:
+    image: ${DOCKER_REGISTRY-}tresdos
+    build:
+      context: TresDos
+      dockerfile: Dockerfile

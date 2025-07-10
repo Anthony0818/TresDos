@@ -1,0 +1,8 @@
+﻿@model LoginModel
+<form asp-action="Login" method="post">
+    <h2>Login</h2>
+    <input asp-for="Username" placeholder="Username" class="form-control" />
+    <input asp-for="Password" placeholder="Password" type="password" class="form-control" />
+    <button type="submit" class="btn btn-primary">Login</button>
+    <p class="text-danger">@ViewBag.Error</p>
+</form>

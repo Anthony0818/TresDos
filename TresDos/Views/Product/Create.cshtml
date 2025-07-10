@@ -1,0 +1,8 @@
+﻿@model Product
+<form asp-action="Create" method="post">
+    <h2>Create Product</h2>
+    <input asp-for="Name" placeholder="Name" class="form-control" />
+    <input asp-for="Description" placeholder="Description" class="form-control" />
+    <input asp-for="Price" placeholder="Price" class="form-control" />
+    <button type="submit" class="btn btn-success">Create</button>
+</form>
