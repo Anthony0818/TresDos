@@ -1,7 +1,6 @@
 .bettor-name {
     font-size: 1.2rem;
     font-weight: bold;
-    margin-top: 30px;
 }
 
 .valid {
@@ -13,7 +12,7 @@
 }
 
 /* Responsive Layout */
-@media (max-width: 575.98px) {
+/*@media (max-width: 575.98px) {
     .desktop-table {
         display: none;
     }
@@ -23,7 +22,7 @@
     .mobile-cards {
         display: none;
     }
-}
+}*/
 
 .copy-buttons .validate-buttons {
     display: flex;
