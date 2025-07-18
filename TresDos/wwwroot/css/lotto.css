@@ -1,0 +1,55 @@
+.bettor-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 30px;
+}
+
+.valid {
+    color: green;
+}
+
+.error {
+    color: red;
+}
+
+/* Responsive Layout */
+@media (max-width: 575.98px) {
+    .desktop-table {
+        display: none;
+    }
+}
+
+@media (min-width: 576px) {
+    .mobile-cards {
+        display: none;
+    }
+}
+
+.copy-buttons .validate-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+textarea {
+    width: 100%;
+    font-family: monospace;
+    resize: vertical;
+}
+
+@media (max-width: 576px) {
+    .validate-buttons button {
+        flex: 1 1 100%;
+    }
+    .copy-buttons button {
+        flex: 1 1 100%;
+    }
+
+    h4 {
+        font-size: 1rem;
+    }
+
+    textarea {
+        font-size: 0.9rem;
+    }
+}

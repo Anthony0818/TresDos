@@ -1,7 +1,16 @@
-﻿namespace TresDos.Models
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
+
+namespace TresDos.Models
 {
     public class LottoBatch
     {
+        [Required(ErrorMessage = "Entry is required.")]
+        public string Entry { get; set; }
+        [Required(ErrorMessage = "Entry is required.")]
+        //public string Agen { get; set; }
+        public string SelectedAgent { get; set; }
+        public List<SelectListItem> Agents { get; set; }
         public List<LottoEntry> Entries { get; set; } = new List<LottoEntry>();
     }
     public class LottoEntry

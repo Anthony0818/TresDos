@@ -11,8 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Views\Bet\ResultTwoD - Copy.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include=".github\workflows\docker-publish.yml" />
     <None Include="Views\Bet\ResultThreeD.cshtml" />
+    <None Include="Views\Bet\ResultTwoD - Copy.cshtml" />
     <None Include="Views\Bet\ResultTwoD.cshtml" />
   </ItemGroup>
 

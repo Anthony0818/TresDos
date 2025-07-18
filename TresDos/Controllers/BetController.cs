@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using TresDos.Models;
 
@@ -8,6 +10,18 @@ namespace TresDos.Controllers
     public class BetController : Controller
     {
         private static readonly List<int> ValidAmounts = Enumerable.Range(2, 60).Select(i => i * 5).ToList(); // 10 to 300
+        #region Agents
+        private List<SelectListItem> GetAgents()
+        {
+            return new List<SelectListItem>
+        {
+            new SelectListItem { Value = "", Text = "--" },
+            new SelectListItem { Value = "Anthony", Text = "Anthony" },
+            new SelectListItem { Value = "Jazz", Text = "Jazz" },
+            new SelectListItem { Value = "Loki", Text = "Loki" }
+        };
+        }
+        #endregion
         #region 3D
         [Route("Bet/3d")]
         public ActionResult ThreeD()
@@ -194,67 +208,77 @@ namespace TresDos.Controllers
         [Route("Bet/2d")]
         public ActionResult TwoD()
         {
-            return View();
+            var batch = new LottoBatch();
+            batch.Agents = GetAgents();
+            return View(batch);
         }
         [Route("Bet/2d")]
         [HttpPost]
-        public ActionResult TwoD(string rawInput)
+        public ActionResult TwoD(LottoBatch rawInput, string action)
         {
             var batch = new LottoBatch();
-            var lines = rawInput.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            batch.Agents = GetAgents();
+            if (action == "Validate")
+            { 
+                var lines = rawInput.Entry.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
-            LottoEntry currentEntry = null;
-            HashSet<string> bettorNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            HashSet<string> localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                LottoEntry currentEntry = null;
+                HashSet<string> bettorNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                HashSet<string> localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var line in lines.Select(l => l.Trim()).Where(l => !string.IsNullOrEmpty(l)))
-            {
-                if (line.StartsWith("@"))
+                foreach (var line in lines.Select(l => l.Trim()).Where(l => !string.IsNullOrEmpty(l)))
                 {
-                    string bettorName = line.Substring(1).Trim();
-
-                    if (bettorNames.Contains(bettorName))
+                    if (line.StartsWith("@"))
                     {
-                        currentEntry = new LottoEntry
+                        string bettorName = line.Substring(1).Trim();
+
+                        if (bettorNames.Contains(bettorName))
                         {
-                            BettorName = bettorName + " (DUPLICATE)",
-                        };
-                        currentEntry.Bets.Add(new BetLine
-                        {
-                            RawInput = line,
-                            Error = $"Duplicate bettor name: {bettorName}"
-                        });
+                            currentEntry = new LottoEntry
+                            {
+                                BettorName = bettorName + " (DUPLICATE)",
+                            };
+                            currentEntry.Bets.Add(new BetLine
+                            {
+                                RawInput = line,
+                                Error = $"Duplicate bettor name: {bettorName}"
+                            });
+                            batch.Entries.Add(currentEntry);
+                            continue;
+                        }
+
+                        bettorNames.Add(bettorName);
+                        currentEntry = new LottoEntry { BettorName = bettorName };
                         batch.Entries.Add(currentEntry);
+                        localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                         continue;
                     }
 
-                    bettorNames.Add(bettorName);
-                    currentEntry = new LottoEntry { BettorName = bettorName };
-                    batch.Entries.Add(currentEntry);
-                    localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    continue;
+                    if (currentEntry == null)
+                        continue;
+
+                    var bet = Parse2DBetLine(line);
+                    //string key = $"{Normalize2DCombo(bet.Combination)}-{bet.BetType}";
+                    string key = $"{bet.Combination}-{bet.BetType}";
+
+                    if (localDuplicates.Contains(key))
+                    {
+                        bet.Error = "Duplicate entry";
+                    }
+                    else
+                    {
+                        localDuplicates.Add(key);
+                    }
+
+                    currentEntry.Bets.Add(bet);
                 }
-
-                if (currentEntry == null)
-                    continue;
-
-                var bet = Parse2DBetLine(line);
-                //string key = $"{Normalize2DCombo(bet.Combination)}-{bet.BetType}";
-                string key = $"{bet.Combination}-{bet.BetType}";
-
-                if (localDuplicates.Contains(key))
-                {
-                    bet.Error = "Duplicate entry";
-                }
-                else
-                {
-                    localDuplicates.Add(key);
-                }
-
-                currentEntry.Bets.Add(bet);
+                //return View("TwoD", batch);
             }
-
-            return View("ResultTwoD", batch);
+            //else
+            //{
+            //    return View("TwoD", batch);
+            //}
+            return View("TwoD", batch);
         }
         private BetLine Parse2DBetLine(string line)
         {
@@ -330,6 +354,148 @@ namespace TresDos.Controllers
         //    Array.Sort(digits);
         //    return string.Join("-", digits);
         //}
+        #endregion
+
+        #region LP3
+        private const int MaxRange = 31; // Change this dynamically if needed
+
+        [HttpGet]
+        public IActionResult ValidateLp3()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult ValidateLp3(string rawInput)
+        {
+            int maxRange = 31; // Can be from config or passed from user input
+            var batch = LP3Parser.ParseLP3(rawInput, maxRange);
+
+            // Optionally, filter and show only invalid entries
+            var invalid = batch.Entries
+                .SelectMany(e => e.Bets.Where(b => !string.IsNullOrEmpty(b.Error)))
+                .ToList();
+
+            // Send to view or return as JSON
+            return View(batch);
+        }
+        public static class LP3Parser
+        {
+            private static readonly HashSet<int> ValidAmounts = new()
+    {
+        10, 15, 20, 25, 30, 35, 40, 45, 50, 55,
+        60, 65, 70, 75, 80, 85, 90, 95, 100,
+        150, 200, 250, 300, 350, 400, 450, 500
+    };
+
+            private static readonly Regex EntryRegex = new(
+                @"^(?<combo>(\d{1,2})\s*-\s*(\d{1,2})\s*-\s*(\d{1,2}))\s*=\s*(?:(?<amount>\d{2,3})\s*(?<type>RB)?|(?<typeOnly>FB))$",
+                RegexOptions.IgnoreCase | RegexOptions.Compiled
+            );
+
+            public static LottoBatch ParseLP3(string rawInput, int maxRange)
+            {
+                var batch = new LottoBatch();
+                var lines = rawInput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(l => l.Trim()).ToList();
+
+                LottoEntry currentEntry = null;
+
+                foreach (var line in lines)
+                {
+                    if (line.StartsWith("@"))
+                    {
+                        currentEntry = new LottoEntry { BettorName = line };
+                        batch.Entries.Add(currentEntry);
+                        continue;
+                    }
+
+                    if (currentEntry == null)
+                    {
+                        // Invalid - bet without bettor name
+                        batch.Entries.Add(new LottoEntry
+                        {
+                            BettorName = "Unknown",
+                            Bets = new List<BetLine>
+                    {
+                        new BetLine
+                        {
+                            RawInput = line,
+                            Error = "Bet provided before @Bettor line"
+                        }
+                    }
+                        });
+                        continue;
+                    }
+
+                    var match = EntryRegex.Match(line);
+                    var betLine = new BetLine { RawInput = line, Bettor = currentEntry.BettorName };
+
+                    if (!match.Success)
+                    {
+                        betLine.Error = "Invalid format";
+                        currentEntry.Bets.Add(betLine);
+                        continue;
+                    }
+
+                    var comboPart = match.Groups["combo"].Value;
+                    var numbers = comboPart.Split('-').Select(n => n.Trim()).ToArray();
+
+                    if (numbers.Length != 3)
+                    {
+                        betLine.Error = "Combination must have exactly 3 numbers";
+                        currentEntry.Bets.Add(betLine);
+                        continue;
+                    }
+
+                    if (numbers.Any(n => !int.TryParse(n, out int num) || num < 1 || num > maxRange))
+                    {
+                        betLine.Error = $"Numbers must be in range 1–{maxRange}";
+                        currentEntry.Bets.Add(betLine);
+                        continue;
+                    }
+
+                    var amountStr = match.Groups["amount"].Value;
+                    var type = match.Groups["type"].Value.ToUpper();
+                    var typeOnly = match.Groups["typeOnly"].Value.ToUpper();
+
+                    if (!string.IsNullOrEmpty(typeOnly))
+                    {
+                        if (typeOnly != "FB")
+                        {
+                            betLine.Error = "Invalid bet type";
+                        }
+                        else
+                        {
+                            betLine.Amount = "0";
+                            betLine.BetType = "FB";
+                            betLine.Combination = string.Join("-", numbers);
+                        }
+                    }
+                    else
+                    {
+                        if (!int.TryParse(amountStr, out int amount) || !ValidAmounts.Contains(amount))
+                        {
+                            betLine.Error = "Invalid amount";
+                        }
+                        else if (!string.IsNullOrEmpty(type) && type != "RB")
+                        {
+                            betLine.Error = "Invalid bet type";
+                        }
+                        else
+                        {
+                            betLine.Amount = amount.ToString();
+                            betLine.BetType = string.IsNullOrEmpty(type) ? "NORMAL" : type;
+                            betLine.Combination = string.Join("-", numbers);
+                        }
+                    }
+
+                    currentEntry.Bets.Add(betLine);
+                }
+
+                return batch;
+            }
+        }
         #endregion
     }
 }

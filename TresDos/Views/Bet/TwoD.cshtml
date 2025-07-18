@@ -1,7 +1,233 @@
-﻿@using (Html.BeginForm("TwoD", "Bet", FormMethod.Post))
+﻿@model LottoBatch
+
+@using (Html.BeginForm("TwoD", "Bet", FormMethod.Post))
 {
-    <h2>Enter 2D Lotto Entries</h2>
-    <textarea name="rawInput" rows="10" style="width:100%;"></textarea>
-    <br />
-    <button type="submit">Validate</button>
+    <div class="card mb-3">
+        <div class="card-header">
+            2D - Bet Entry (2PM, 5PM, 9PM)
+        </div>
+        <div class="card-body">
+        @* <textarea name="rawInput" rows="10" style="width:100%;"></textarea> *@
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <label asp-for="Entry" class="form-label">Select Agent</label>
+                        @Html.DropDownListFor(m => m.SelectedAgent, Model.Agents, new { @class = "form-select" })
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <label asp-for="Entry" class="form-label">Combination</label>
+                        @Html.TextAreaFor(m => m.Entry, new { @class = "form-control", rows = 8 })
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12 text-end text-md-start">
+                        <button type="submit" name="action" value="Validate" class="btn btn-primary w-100 w-md-auto">
+                            Validate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 }
+
+<div class="card mb-3">
+    <div class="card-header">
+       Validation
+    </div>
+    <div class="card-body">
+    @if (Model != null)
+    {
+        if (Model.Entries.Count == 0)
+        {
+            <p>No entries found.</p>
+        }
+        else
+        {
+            foreach (var entry in Model.Entries)
+            {
+                <div class="bettor-name">@entry.BettorName</div>
+
+                <!-- DESKTOP TABLE -->
+                <div class="table-responsive desktop-table mt-2 mb-4">
+                    <table class="table table-bordered table-sm table-striped text-center align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <!--<th>#</th>-->
+                                <th>Raw Input</th>
+                                <th>Combination</th>
+                                <th>Amount</th>
+                                <th>Bet Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int count1 = 1;
+                                foreach (var bet in entry.Bets)
+                                {
+                                    <tr>
+                                        <!--<td>@count1</td>-->
+                                        <td>@bet.RawInput</td>
+                                        <td>@bet.Combination</td>
+                                        <td>@bet.Amount</td>
+                                        <td>@bet.BetTypeName</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(bet.Error))
+                                            {
+                                                <span class="error">@bet.Error</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="valid">Valid</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                    count1++;
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MOBILE CARD LAYOUT -->
+                <div class="mobile-cards">
+                    @{
+                        int count = 1;
+                        foreach (var bet in entry.Bets)
+                        {
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    @bet.Combination=@bet.Amount@bet.BetType
+                                </div>
+                                <div class="card-body">
+                                    <!--<h6 class="card-title mb-2">#@count</h6>-->
+                                    <p class="mb-1"><strong>Raw Input:</strong> @bet.RawInput</p>
+                                    <p class="mb-1"><strong>Combination:</strong> @bet.Combination</p>
+                                    <p class="mb-1"><strong>Amount:</strong> @bet.Amount</p>
+                                    <p class="mb-1"><strong>Bet Type:</strong> @bet.BetTypeName</p>
+                                    <p class="mb-0">
+                                        <strong>Status:</strong>
+                                        @if (!string.IsNullOrEmpty(bet.Error))
+                                        {
+                                            <span class="error">@bet.Error</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="valid">Valid</span>
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                            count++;
+                        }
+                    }
+                </div>
+            }
+        
+        <h2>📋 Copy Bets</h2>
+
+        <div class="copy-buttons mb-3">
+            <button class="btn btn-primary me-2 mb-2" onclick="copyText('validBets')">Copy Valid Bets</button>
+            <button class="btn btn-danger me-2 mb-2" onclick="copyText('invalidBets')">Copy Invalid Bets</button>
+            <button class="btn btn-secondary mb-2" onclick="copyText('allBets')">Copy All Bets</button>
+        </div>
+
+        <div class="bet-section">
+            <h4>
+                ✅ Valid Bets
+                <button class="btn btn-link p-0" onclick="toggleSection('validBetsSection', this)">Show</button>
+            </h4>
+            <div id="validBetsSection" style="display: none;">
+                <textarea id="validBets" class="form-control mb-3" rows="8" readonly>
+                    @{
+                        foreach (var entry in Model.Entries)
+                        {
+                            var validBets = entry.Bets.Where(b => string.IsNullOrEmpty(b.Error)).ToList();
+                            if (validBets.Any())
+                            {
+                                @($"@{entry.BettorName}\n")
+                                foreach (var bet in validBets)
+                                {
+                                    @($"{bet.RawInput}\n")
+                                }
+                                @("\n")
+                            }
+                        }
+                    }
+            </textarea>
+            </div>
+
+            <h4>
+                ❌ Invalid Bets
+                <button class="btn btn-link p-0" onclick="toggleSection('invalidBetsSection', this)">Show</button>
+            </h4>
+            <div id="invalidBetsSection" style="display: none;">
+                <textarea id="invalidBets" class="form-control mb-3" rows="8" readonly>
+                    @{
+                        foreach (var entry in Model.Entries)
+                        {
+                            var invalidBets = entry.Bets.Where(b => !string.IsNullOrEmpty(b.Error)).ToList();
+                            if (invalidBets.Any())
+                            {
+                                @($"@{entry.BettorName}\n")
+                                foreach (var bet in invalidBets)
+                                {
+                                    @($"{bet.RawInput}\n")
+                                }
+                                @("\n")
+                            }
+                        }
+                    }
+            </textarea>
+            </div>
+
+            <h4>
+                📋 All Bets
+                <button class="btn btn-link p-0" onclick="toggleSection('allBetsSection', this)">Show</button>
+            </h4>
+            <div id="allBetsSection" style="display: none;">
+                <textarea id="allBets" class="form-control mb-3" rows="8" readonly>
+                    @{
+                        foreach (var entry in Model.Entries)
+                        {
+                            @($"@{entry.BettorName}\n")
+                            foreach (var bet in entry.Bets)
+                            {
+                                @($"{bet.RawInput}\n")
+                            }
+                            @("\n")
+                        }
+                    }
+            </textarea>
+            </div>
+        </div>
+    }
+    }
+    <script>
+        function copyText(id) {
+            const textarea = document.getElementById(id);
+            textarea.select();
+            textarea.setSelectionRange(0, 99999); // for mobile
+            document.execCommand("copy");
+            alert("Copied!");
+        }
+    </script>
+
+    <script>
+        function toggleSection(sectionId, btn) {
+            const section = document.getElementById(sectionId);
+            if (section.style.display === "none") {
+                section.style.display = "block";
+                btn.textContent = "Hide";
+            } else {
+                section.style.display = "none";
+                btn.textContent = "Show";
+            }
+        }
+    </script>
+    </div>
+</div>
