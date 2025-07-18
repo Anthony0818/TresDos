@@ -1,0 +1,206 @@
+﻿@model LottoBatch
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>2D Lotto Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 10px;
+        }
+
+        h1, h2, h4 {
+            margin-top: 20px;
+        }
+
+        .bettor-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 30px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .valid {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .copy-buttons {
+            margin-top: 20px;
+        }
+
+            .copy-buttons button {
+                margin-right: 10px;
+                margin-bottom: 10px;
+                padding: 8px 14px;
+                font-size: 1rem;
+            }
+
+        textarea {
+            width: 100%;
+            font-family: Consolas, monospace;
+            font-size: 0.95rem;
+            padding: 8px;
+            box-sizing: border-box;
+            resize: vertical;
+            margin-bottom: 20px;
+            white-space: pre;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>2D Lotto Entry Validation</h1>
+
+    @if (Model.Entries.Count == 0)
+    {
+        <p>No entries found.</p>
+    }
+    else
+    {
+        foreach (var entry in Model.Entries)
+        {
+            <div class="bettor-name">@entry.BettorName</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Raw Input</th>
+                            <th>Combination</th>
+                            <th>Amount</th>
+                            <th>Bet Type</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int count = 1;
+                            foreach (var bet in entry.Bets)
+                            {
+                                <tr>
+                                    <td>@count</td>
+                                    <td>@bet.RawInput</td>
+                                    <td>@bet.Combination</td>
+                                    <td>@bet.Amount</td>
+                                    <td>@bet.BetTypeName</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(bet.Error))
+                                        {
+                                            <span class="error">@bet.Error</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="valid">Valid</span>
+                                        }
+                                    </td>
+                                </tr>
+                                count++;
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+
+    <h2>📋 Copy Bets</h2>
+
+    <div class="copy-buttons">
+        <button onclick="copyText('validBets')">Copy Valid Bets</button>
+        <button onclick="copyText('invalidBets')">Copy Invalid Bets</button>
+        <button onclick="copyText('allBets')">Copy All Bets</button>
+    </div>
+
+    <h4>✅ Valid Bets</h4>
+    <textarea id="validBets" rows="8" readonly>
+        @{
+            foreach (var entry in Model.Entries)
+            {
+                var validBets = entry.Bets.Where(b => string.IsNullOrEmpty(b.Error)).ToList();
+                if (validBets.Any())
+                {
+                    @($"@{entry.BettorName}\n")
+                    foreach (var bet in validBets)
+                    {
+                        @($"{bet.RawInput}\n")
+                    }
+                    @("\n")
+                }
+            }
+        }
+    </textarea>
+
+    <h4>❌ Invalid Bets</h4>
+    <textarea id="invalidBets" rows="8" readonly>
+        @{
+            foreach (var entry in Model.Entries)
+            {
+                var invalidBets = entry.Bets.Where(b => !string.IsNullOrEmpty(b.Error)).ToList();
+                if (invalidBets.Any())
+                {
+                    @($"@{entry.BettorName}\n")
+                    foreach (var bet in invalidBets)
+                    {
+                        @($"{bet.RawInput}\n")
+                    }
+                    @("\n")
+                }
+            }
+        }
+    </textarea>
+
+    <h4>📋 All Bets</h4>
+    <textarea id="allBets" rows="8" readonly>
+        @{
+            foreach (var entry in Model.Entries)
+            {
+                @($"@{entry.BettorName}\n")
+                foreach (var bet in entry.Bets)
+                {
+                    @($"{bet.RawInput}\n")
+                }
+                @("\n")
+            }
+        }
+    </textarea>
+
+    <script>
+        function copyText(id) {
+            const textarea = document.getElementById(id);
+            textarea.select();
+            textarea.setSelectionRange(0, 99999); // for mobile
+            document.execCommand("copy");
+            alert("Copied!");
+        }
+    </script>
+
+</body>
+</html>

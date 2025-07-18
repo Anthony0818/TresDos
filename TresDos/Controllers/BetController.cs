@@ -8,81 +8,16 @@ namespace TresDos.Controllers
     public class BetController : Controller
     {
         private static readonly List<int> ValidAmounts = Enumerable.Range(2, 60).Select(i => i * 5).ToList(); // 10 to 300
-
+        #region 3D
+        [Route("Bet/3d")]
         public ActionResult ThreeD()
         {
             return View();
         }
-
+        [Route("Bet/3d")]
         [HttpPost]
-        public ActionResult Submit(string rawInput)
+        public ActionResult ThreeD(string rawInput)
         {
-            //var model = new LottoEntry();
-            //var lines = rawInput.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-            //var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // Track combo+type
-
-            //foreach (var line in lines)
-            //{
-            //    //if (line.StartsWith("@"))
-            //    //{
-            //    //    model.BettorName = line.Substring(1).Trim();
-            //    //    continue;
-            //    //}
-
-            //    var bet = ParseBetLine(line.Trim());
-            //    var key = $"{NormalizeCombo(bet.Combination)}-{bet.BetType}";
-
-            //    if (seen.Contains(key))
-            //    {
-            //        bet.Error = "Duplicate entry";
-            //    }
-            //    else
-            //    {
-            //        seen.Add(key);
-            //    }
-
-            //    model.Bets.Add(bet);
-            //}
-
-            //return View("Result", model);
-
-            //var batch = new LottoBatch();
-            //var lines = rawInput.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
-            //LottoEntry currentEntry = null;
-            //HashSet<string> localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            //foreach (var line in lines.Select(l => l.Trim()).Where(l => !string.IsNullOrEmpty(l)))
-            //{
-            //    if (line.StartsWith("@"))
-            //    {
-            //        // New bettor
-            //        currentEntry = new LottoEntry { BettorName = line.Substring(1).Trim() };
-            //        batch.Entries.Add(currentEntry);
-            //        localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // Reset for new bettor
-            //        continue;
-            //    }
-
-            //    if (currentEntry == null)
-            //        continue; // Skip invalid line if no bettor is defined yet
-
-            //    var bet = ParseBetLine(line);
-            //    string key = $"{NormalizeCombo(bet.Combination)}-{bet.BetType}";
-
-            //    if (localDuplicates.Contains(key))
-            //    {
-            //        bet.Error = "Duplicate entry";
-            //    }
-            //    else
-            //    {
-            //        localDuplicates.Add(key);
-            //    }
-
-            //    currentEntry.Bets.Add(bet);
-            //}
-
-            //return View("Result", batch);
-
             var batch = new LottoBatch();
             var lines = rawInput.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -122,8 +57,8 @@ namespace TresDos.Controllers
                 if (currentEntry == null)
                     continue; // Skip lines if no bettor name yet
 
-                var bet = ParseBetLine(line);
-                string key = $"{NormalizeCombo(bet.Combination)}-{bet.BetType}";
+                var bet = ParseThreeDBetLine(line);
+                string key = $"{NormalizeThreeDCombo(bet.Combination)}-{bet.BetType}";
 
                 if (localDuplicates.Contains(key))
                 {
@@ -137,20 +72,15 @@ namespace TresDos.Controllers
                 currentEntry.Bets.Add(bet);
             }
 
-            return View("Result", batch);
+            return View("ResultThreeD", batch);
         }
-
-        private BetLine ParseBetLine(string line)
+        private BetLine ParseThreeDBetLine(string line)
         {
             var result = new BetLine
             {
                 RawInput = line // Store original format
             };
 
-            // Validate format: e.g. 1-2-3=50S or 777=10R
-            //var match = Regex.Match(line, @"^(\d{1}-\d{1}-\d{1}|\d{3})=(\d+)([SR])$", RegexOptions.IgnoreCase);
-            //var match = Regex.Match(line, @"^(\d{1}-\d{1}-\d{1}|\d{3})=(\d{2,3})([SR])$", RegexOptions.IgnoreCase);
-            //var match = Regex.Match(line, @"^(\d{3}|\d-\d-\d)=(\d{2,3})([SR])$", RegexOptions.IgnoreCase);
             var match = Regex.Match(line, @"^(\d{3}|\d-\d-\d)=(\d{2,3})([SRsr])$");
             if (!match.Success)
             {
@@ -240,20 +170,13 @@ namespace TresDos.Controllers
 
             return result;
         }
-
         private bool IsTrio(string combo)
         {
-            //string cleaned = combo.Replace("-", "");
-            //return cleaned.Length == 3 && cleaned[0] == cleaned[1] && cleaned[1] == cleaned[2];
             var digits = combo.Replace("-", "");
             return digits.Length == 3 && digits.Distinct().Count() == 1;
         }
-        private string NormalizeCombo(string combo)
+        private string NormalizeThreeDCombo(string combo)
         {
-            // Remove dashes, convert to char[], sort, and reformat with dashes
-            //var digits = combo.Replace("-", "").ToCharArray();
-            //return string.Join("-", digits);
-
             if (string.IsNullOrWhiteSpace(combo))
                 return string.Empty; // or throw new ArgumentException("Combination is required");
 
@@ -265,5 +188,148 @@ namespace TresDos.Controllers
             Array.Sort(digits);
             return string.Join("-", digits);
         }
+        #endregion
+
+        #region 2D
+        [Route("Bet/2d")]
+        public ActionResult TwoD()
+        {
+            return View();
+        }
+        [Route("Bet/2d")]
+        [HttpPost]
+        public ActionResult TwoD(string rawInput)
+        {
+            var batch = new LottoBatch();
+            var lines = rawInput.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+            LottoEntry currentEntry = null;
+            HashSet<string> bettorNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            HashSet<string> localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var line in lines.Select(l => l.Trim()).Where(l => !string.IsNullOrEmpty(l)))
+            {
+                if (line.StartsWith("@"))
+                {
+                    string bettorName = line.Substring(1).Trim();
+
+                    if (bettorNames.Contains(bettorName))
+                    {
+                        currentEntry = new LottoEntry
+                        {
+                            BettorName = bettorName + " (DUPLICATE)",
+                        };
+                        currentEntry.Bets.Add(new BetLine
+                        {
+                            RawInput = line,
+                            Error = $"Duplicate bettor name: {bettorName}"
+                        });
+                        batch.Entries.Add(currentEntry);
+                        continue;
+                    }
+
+                    bettorNames.Add(bettorName);
+                    currentEntry = new LottoEntry { BettorName = bettorName };
+                    batch.Entries.Add(currentEntry);
+                    localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    continue;
+                }
+
+                if (currentEntry == null)
+                    continue;
+
+                var bet = Parse2DBetLine(line);
+                //string key = $"{Normalize2DCombo(bet.Combination)}-{bet.BetType}";
+                string key = $"{bet.Combination}-{bet.BetType}";
+
+                if (localDuplicates.Contains(key))
+                {
+                    bet.Error = "Duplicate entry";
+                }
+                else
+                {
+                    localDuplicates.Add(key);
+                }
+
+                currentEntry.Bets.Add(bet);
+            }
+
+            return View("ResultTwoD", batch);
+        }
+        private BetLine Parse2DBetLine(string line)
+        {
+            var result = new BetLine
+            {
+                RawInput = line
+            };
+
+            var match = Regex.Match(line, @"^@[\w\s\.]+$|^(\d{1,2})\s*[-*\s]\s*(\d{1,2})\s*=\s*(\d{2,3})([sSrR])$");
+            if (!match.Success)
+            {
+                result.Error = $"Invalid format: {line}";
+                return result;
+            }
+
+            try
+            {
+                var combo1 = match.Groups[1].Value.Trim();
+                var combo2 = match.Groups[2].Value.Trim();
+                var amountStr = match.Groups[3].Value;
+                var type = match.Groups[4].Value.ToUpper();
+
+                result.Bettor = line.Substring(1).Trim();
+                result.Combination = combo1 + "-" + combo2;
+                result.Amount = amountStr;
+                result.BetType = type;
+
+                //string comboDigits = combo.Replace("-", "");
+                //if (comboDigits.Length != 2)
+                //{
+                //    result.Error = "Combination must contain exactly 2 digits.";
+                //    return result;
+                //}
+
+                if ((!int.TryParse(combo1, out int number) || number < 1 || number > 31) && (!int.TryParse(combo2, out int number2) || number2 < 1 || number2 > 31))
+                {
+                    result.Error = "Only numbers from 1 to 31 are allowed.";
+                    return result;
+                }
+
+                if (!int.TryParse(amountStr, out int amount))
+                {
+                    result.Error = $"Invalid amount: {amountStr}";
+                    return result;
+                }
+
+                if (!ValidAmounts.Contains(amount))
+                {
+                    result.Error = $"Amount {amount} is not allowed.";
+                    return result;
+                }
+
+                result.Amount = amount.ToString();
+                // Add additional 2D-only logic if needed
+            }
+            catch (Exception ex)
+            {
+                result.Error = "System error: " + ex.Message;
+            }
+
+            return result;
+        }
+        //private string Normalize2DCombo(string combo)
+        //{
+        //    if (string.IsNullOrWhiteSpace(combo))
+        //        return string.Empty;
+
+        //    var digits = combo.Replace(" ", "-").ToCharArray();
+
+        //    //if (digits.Length != 2)
+        //    //    return string.Empty;
+
+        //    Array.Sort(digits);
+        //    return string.Join("-", digits);
+        //}
+        #endregion
     }
 }
