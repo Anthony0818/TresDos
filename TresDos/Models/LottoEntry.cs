@@ -6,7 +6,7 @@
     }
     public class LottoEntry
     {
-        public string BettorName { get; set; }
+        public required string BettorName { get; set; }
         public List<BetLine> Bets { get; set; } = new List<BetLine>();
     }
 

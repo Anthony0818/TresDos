@@ -81,7 +81,7 @@ namespace TresDos.Controllers
                 RawInput = line // Store original format
             };
 
-            var match = Regex.Match(line, @"^(\d{3}|\d-\d-\d)=(\d{2,3})([SRsr])$");
+            var match = Regex.Match(line, @"^(\d{3}|\d\s*-\s*\d\s*-\s*\d|\d\s*\*\s*\d\s*\*\s*\d|\d\s+\d\s+\d)\s*=\s*(\d{2,3})([SRsr])$");
             if (!match.Success)
             {
                 result.Error = $"Invalid format: {line}";
@@ -100,7 +100,7 @@ namespace TresDos.Controllers
                 result.BetType = type;
 
                 // Normalize combination
-                string comboDigits = combo.Replace("-", "");
+                string comboDigits = combo.Replace(" ", "").Replace("-", "");
                 if (comboDigits.Length != 3)
                 {
                     result.Error = "Combination must contain exactly 3 digits.";

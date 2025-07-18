@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <None Include=".github\workflows\docker-publish.yml" />
+    <None Include="Views\Bet\ResultThreeD.cshtml" />
+    <None Include="Views\Bet\ResultTwoD.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
