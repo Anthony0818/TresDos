@@ -5,11 +5,11 @@ namespace TresDos.Models
 {
     public class LottoBatch
     {
-        [Required(ErrorMessage = "Entry is required.")]
+        [Required(ErrorMessage = "Combination Entry is required.")]
         public string Entry { get; set; }
-        [Required(ErrorMessage = "Entry is required.")]
-        //public string Agen { get; set; }
-        public string SelectedAgent { get; set; }
+        [Required(ErrorMessage = "Agent is required.")]
+        public int SelectedAgentID { get; set; }
+        public string SelectedAgentText { get; set; }
         public List<SelectListItem> Agents { get; set; }
         public List<LottoEntry> Entries { get; set; } = new List<LottoEntry>();
     }
@@ -29,8 +29,8 @@ namespace TresDos.Models
         public string Error { get; set; }   // Optional: for validation error
 
         public string BetTypeName =>
-            BetType == "S" ? "Straight" :
-            BetType == "R" ? "Random" :
+            (BetType == "S" || BetType == "s") ? "Straight" :
+            (BetType == "R" || BetType == "r") ? "Random" :
             "Invalid";
     }
 }

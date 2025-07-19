@@ -1,6 +1,10 @@
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddViewOptions(options =>
+    {
+        options.HtmlHelperOptions.ClientValidationEnabled = true;
+    });
 builder.Services.AddSession();
 
 var apiBaseUrl = builder.Configuration.GetValue<string>("ApiSettings:BaseUrl");
