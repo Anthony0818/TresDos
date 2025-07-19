@@ -49,7 +49,16 @@
                                 <span asp-validation-for="SelectedAgentID" class="text-danger"></span>
                             </div>
                         </div>
-
+                        @if (ViewBag.InvalidBettorName != null)
+                        {
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <div class="alert alert-danger" role="alert">
+                                        ❌ @ViewBag.InvalidBettorName
+                                    </div>
+                                </div>
+                            </div>
+                        }
                         <!-- Combination Text Area -->
                         <div class="row">
                             <div class="col-12 mb-3">
@@ -58,11 +67,7 @@
                                 <span asp-validation-for="Entry" class="text-danger"></span>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <label asp-for="Entry" class="form-label">@ViewBag.InvalidBettorName</label>
-                            </div>
-                        </div>
+                       
                         <!-- Validate Button -->
                         <div class="row">
                             <div class="col-12 text-center text-md-start">
@@ -76,7 +81,7 @@
                 </div>
             </div>
         </div>
-        @if (Model != null)
+        @if (Model.Entries != null)
         {
             if (Model.Entries.Count > 0)
             {
@@ -86,7 +91,7 @@
                             Validation
                         </div>
                         <div class="card-body">
-                            @if (Model != null)
+                            @if (Model.Entries != null)
                             {
                                 if (Model.Entries.Count == 0)
                                 {
@@ -133,105 +138,177 @@
                                         </div>
                                     }
 
-                                    <h2>📋 Copy Bets</h2>
+                                    @*<h3>📋 Copy Bets</h3>
 
                                     <div class="copy-buttons mb-3">
-                                        <button type="button" class="btn btn-primary me-2 mb-2" onclick="copyText('validBets')">Copy Valid Bets</button>
-                                        <button type="button" class="btn btn-danger me-2 mb-2" onclick="copyText('invalidBets')">Copy Invalid Bets</button>
-                                        <button type="button" class="btn btn-secondary mb-2" onclick="copyText('allBets')">Copy All Bets</button>
-                                    </div>
+                                        <button type="button" class="btn btn-primary me-2 mb-2" onclick="copyText('validBets')">Valid Bets</button>
+                                        <!--<button type="button" class="btn btn-danger me-2 mb-2" onclick="copyText('invalidBets')">Copy Invalid Bets</button>-->
+                                        <button type="button" class="btn btn-danger me-2 mb-2" onclick="copyInvalidBetsDivText()">Invalid Bets</button>
+                                        <button type="button" class="btn btn-secondary mb-2" onclick="copyText('allBets')">All Bets</button>
+                                    </div>*@
 
                                     <div class="bet-section">
-                                        <h4>
-                                            ✅ Valid Bets
-                                            <button type="button" class="btn btn-link p-0" onclick="toggleSection('validBetsSection', this)">Show</button>
-                                        </h4>
-                                        <div id="validBetsSection">
-                                            <!--<textarea id="validBets" class="form-control mb-3" rows="8" readonly>-->
-                                                @{
-                                                    foreach (var entry in Model.Entries)
+                                        <!--VALID BETS-->
+                                        @{
+                                            var validEntries = Model.Entries
+                                            .Select(e => new
+                                            {
+                                                e.BettorName,
+                                                ValidBets = e.Bets.Where(b => string.IsNullOrEmpty(b.Error)).ToList()
+                                            })
+                                            .Where(e => e.ValidBets.Any())
+                                            .ToList();
+
+                                            var totalValidBets = validEntries.Sum(e => e.ValidBets.Count);
+                                        }
+
+                                        <div class="card mb-3">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0 text-success">✅ Valid Bets (@totalValidBets)</h5>
+                                                <button type="button" class="btn btn-link p-0" onclick="toggleSection('validBetsSection', this)">Show</button>
+                                            </div>
+                                            <div class="card-body" id="validBetsSection" style="display: none">
+                                                    @foreach (var entry in validEntries)
                                                     {
-                                                        var validBets = entry.Bets.Where(b => string.IsNullOrEmpty(b.Error)).ToList();
-                                                        if (validBets.Any())
+                                                        <p class="text-success fw-bold mb-1">@($"@{entry.BettorName}")</p>
+                                                        @foreach (var bet in entry.ValidBets)
                                                         {
-                                                            @($"@{entry.BettorName}\n")
-                                                            foreach (var bet in validBets)
-                                                            {
-                                                                @($"{bet.RawInput}\n")
-                                                            }
-                                                            @("\n")
+                                                            <p class="text-success mb-1">@bet.RawInput</p>
                                                         }
+                                                        <hr />
                                                     }
-                                                }
-                                            <!--</textarea>-->
+                                            </div>
+                                            <div class="card-footer text-muted">
+                                                <button type="button" class="btn btn-success me-2 mb-2" onclick="copyValidBetsDivText('validBetsSection')">Copy Valid Bets</button>
+                                            </div>
+                                        </div>
+                                        <!--INVALID BETS-->
+                                        @{
+                                            var invalidEntries = Model.Entries
+                                            .Select(e => new
+                                            {
+                                                e.BettorName,
+                                                InvalidBets = e.Bets.Where(b => !string.IsNullOrEmpty(b.Error)).ToList()
+                                            })
+                                            .Where(e => e.InvalidBets.Any())
+                                            .ToList();
+
+                                            var totalInvalidBets = invalidEntries.Sum(e => e.InvalidBets.Count);
+                                        }
+
+                                        <div class="card mb-3">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0 text-danger">❌ Invalid Bets (@totalInvalidBets)</h5>
+                                                <button type="button" class="btn btn-link p-0" onclick="toggleSection('invalidBetsSection', this)">Hide</button>
+                                            </div>
+                                            <div class="card-body" id="invalidBetsSection">
+                                                    @foreach (var entry in invalidEntries)
+                                                    {
+                                                        <p class="text-danger fw-bold mb-1">@($"@{entry.BettorName}")</p>
+                                                        @foreach (var bet in entry.InvalidBets)
+                                                        {
+                                                            <p class="text-danger mb-1">@bet.RawInput (@bet.Error)</p>
+                                                        }
+                                                        <hr />
+                                                    }
+                                            </div>
+                                            <div class="card-footer text-muted">
+                                                <button type="button" class="btn btn-danger me-2 mb-2" onclick="copyDivText('invalidBetsSection')">Copy Invalid Bets</button>
+                                            </div>
                                         </div>
 
-                                        <h4>
-                                            ❌ Invalid Bets
-                                            <button type="button" class="btn btn-link p-0" onclick="toggleSection('invalidBetsSection', this)">Show</button>
-                                        </h4>
-                                        <div id="invalidBetsSection" style="display: none;">
-                                            <textarea id="invalidBets" class="form-control mb-3" rows="8" readonly>
-                                                @{
-                                                    foreach (var entry in Model.Entries)
-                                                    {
-                                                        var invalidBets = entry.Bets.Where(b => !string.IsNullOrEmpty(b.Error)).ToList();
-                                                        if (invalidBets.Any())
-                                                        {
-                                                            @($"@{entry.BettorName}\n")
-                                                            foreach (var bet in invalidBets)
-                                                            {
-                                                                @($"{bet.RawInput}\n")
-                                                            }
-                                                            @("\n")
-                                                        }
-                                                    }
-                                                }
-                                                                    </textarea>
-                                        </div>
+                                        <!--ALL BETS-->
+                                        @{
+                                            var allEntries = Model.Entries
+                                            .Where(e => e.Bets.Any())
+                                            .Select(e => new
+                                            {
+                                                e.BettorName,
+                                                AllBets = e.Bets
+                                            })
+                                            .ToList();
 
-                                        <h4>
-                                            📋 All Bets
-                                            <button type="button" class="btn btn-link p-0" onclick="toggleSection('allBetsSection', this)">Show</button>
-                                        </h4>
-                                        <div id="allBetsSection" style="display: none;">
-                                            <textarea id="allBets" class="form-control mb-3" rows="8" readonly>
-                                                @{
-                                                    foreach (var entry in Model.Entries)
+                                            var totalAllBets = allEntries.Sum(e => e.AllBets.Count);
+                                        }
+
+                                        <div class="card mb-3">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0 text-info">📋 All Bets (@totalAllBets)</h5>
+                                                <button type="button" class="btn btn-link p-0" onclick="toggleSection('allBetsSection', this)">Show</button>
+                                            </div>
+                                            <div class="card-body" id="allBetsSection" style="display: none">
+                                                @foreach (var entry in allEntries)
+                                                {
+                                                    <p class="fw-bold mb-1">@($"@{entry.BettorName}")</p>
+                                                    @foreach (var bet in entry.AllBets)
                                                     {
-                                                        @($"@{entry.BettorName}\n")
-                                                        foreach (var bet in entry.Bets)
-                                                        {
-                                                            @($"{bet.RawInput}\n")
-                                                        }
-                                                        @("\n")
+                                                        <p class="mb-1">
+                                                            @bet.RawInput
+                                                            @if (!string.IsNullOrEmpty(bet.Error))
+                                                            {
+                                                                <span class="text-danger">(@bet.Error)</span>
+                                                            }
+                                                        </p>
                                                     }
+                                                    <hr />
                                                 }
-                                                                    </textarea>
+                                            </div>
+                                            <div class="card-footer text-muted">
+                                                <button type="button" class="btn btn-info me-2 mb-2" onclick="copyAllBetsDivText()">Copy All Bets</button>
+                                            </div>
                                         </div>
                                     </div>
                                 }
                             }
+                           
                             <script>
-                                function copyText(id) {
-                                const textarea = document.getElementById(id);
-                                textarea.select();
-                                textarea.setSelectionRange(0, 99999); // for mobile
-                                document.execCommand("copy");
-                                alert("Copied!");
+                                function copyDivText(sectionId) {
+                                    const div = document.getElementById(sectionId);
+
+                                    if (!div) {
+                                        alert("Div not found!");
+                                        return;
+                                    }
+
+                                    // Clone the element to avoid modifying the original
+                                    const cloned = div.cloneNode(true);
+
+                                    // Replace each <hr> with a span containing \n\n and remove the <hr>
+                                    const hrs = cloned.querySelectorAll('hr');
+                                    hrs.forEach(hr => {
+                                        const newlineSpan = document.createElement('span');
+                                        newlineSpan.innerText = '\n\n';
+                                        hr.parentNode.insertBefore(newlineSpan, hr.nextSibling);
+                                        hr.remove(); // remove the <hr>
+                                    });
+
+                                    // Extract raw text
+                                    const rawText = cloned.innerText || cloned.textContent || '';
+
+                                    // Normalize:
+                                    // - Remove leading spaces (left-align everything)
+                                    // - Preserve blank lines (from \n\n)
+                                    const normalized = rawText
+                                        .split('\n')
+                                        .map(line => line.trimStart()) // left-align
+                                        .join('\n');
+
+                                    navigator.clipboard.writeText(normalized)
+                                        //.then(() => alert("Copied as plain text!"))
+                                        .catch(err => console.error("Copy failed:", err));
                                 }
                             </script>
 
                             <script>
                                 function toggleSection(sectionId, btn) {
-                                const section = document.getElementById(sectionId);
-                                if (section.style.display === "none") {
-                                section.style.display = "block";
-                                btn.textContent = "Hide";
-                                } else {
-                                section.style.display = "none";
-                                btn.textContent = "Show";
-                                }
+                                    const section = document.getElementById(sectionId);
+                                    if (section.style.display === "none") {
+                                    section.style.display = "block";
+                                    btn.textContent = "Hide";
+                                    } else {
+                                    section.style.display = "none";
+                                    btn.textContent = "Show";
+                                    }
                                 }
                             </script>
                         </div>

@@ -7,7 +7,7 @@ namespace TresDos.Models
     {
         [Required(ErrorMessage = "Combination Entry is required.")]
         public string Entry { get; set; }
-        [Required(ErrorMessage = "Agent is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Agent is required.")]
         public int SelectedAgentID { get; set; }
         public string SelectedAgentText { get; set; }
         public List<SelectListItem> Agents { get; set; }

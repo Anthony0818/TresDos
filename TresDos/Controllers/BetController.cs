@@ -226,14 +226,14 @@ namespace TresDos.Controllers
                 LottoEntry currentEntry = null;
                 HashSet<string> bettorNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 HashSet<string> localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
+                string bettorName = string.Empty;
                 batch.SelectedAgentText = rawInput.SelectedAgentText;
 
                 foreach (var line in lines.Select(l => l.Trim()).Where(l => !string.IsNullOrEmpty(l)))
                 {
                     if (line.StartsWith("@"))
                     {
-                        string bettorName = line.Substring(1).Trim();
+                        bettorName = line.Substring(1).Trim();
 
                         //if (bettorNames.Contains(bettorName))
                         //{
@@ -250,10 +250,10 @@ namespace TresDos.Controllers
                         //    continue;
                         //}
 
-                        bettorNames.Add(bettorName);
+                        //bettorNames.Add(bettorName);
                         currentEntry = new LottoEntry { BettorName = bettorName };
                         batch.Entries.Add(currentEntry);
-                        localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        //localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                         continue;
                     }
                     else
@@ -277,8 +277,8 @@ namespace TresDos.Controllers
                         //}
                         if (!line.Contains("=")) // It's a header like "test" or "@test"
                         {
-                            ViewBag.InvalidBettorName = "Bettor name must starts with @";
-                            currentEntry = null;
+                            ViewBag.InvalidBettorName = "There are errors on the submitted bets. Please check for the allowed Bets format. Check that Bettor Name is prefixed with @.\r\nIncorrect raw bets given";
+                            batch.Entries = null;
                             return View("TwoD", batch);
                         }
                     }
@@ -288,9 +288,33 @@ namespace TresDos.Controllers
 
                     var bet = Parse2DBetLine(line);
                     //string key = $"{Normalize2DCombo(bet.Combination)}-{bet.BetType}"bet.Combination
+                    //if (bet.Combination != null)
+                    //{
+                    //    string key = $"{bettorName} {bet.Combination}={bet.Amount}{bet.BetType}";
+
+                    //    if (localDuplicates.Contains(key))
+                    //    {
+                    //        bet.Error = "Duplicate entry";
+                    //    }
+                    //    else
+                    //    {
+                    //        localDuplicates.Add(key);
+                    //    }
+                    //}
                     if (bet.Combination != null)
                     {
-                        string key = $"{bet.Combination}={bet.Amount}{bet.BetType}";
+                        string normalizedCombination = bet.Combination;
+
+                        // For Rambolito, normalize by sorting numbers
+                        if (bet.BetType.ToLower() == "r")
+                        {
+                            var numbers = bet.Combination.Split('-')
+                                                         .Select(n => n.Trim())
+                                                         .OrderBy(n => int.Parse(n));
+                            normalizedCombination = string.Join("-", numbers);
+                        }
+
+                        string key = $"{bettorName} {normalizedCombination}={bet.Amount}{bet.BetType}";
 
                         if (localDuplicates.Contains(key))
                         {
@@ -336,14 +360,10 @@ namespace TresDos.Controllers
                 result.Amount = amountStr;
                 result.BetType = type.ToUpper();
 
-                //string comboDigits = combo.Replace("-", "");
-                //if (comboDigits.Length != 2)
-                //{
-                //    result.Error = "Combination must contain exactly 2 digits.";
-                //    return result;
-                //}
+                bool isValidCombo1 = int.TryParse(combo1, out int num1) && num1 >= 1 && num1 <= 31;
+                bool isValidCombo2 = int.TryParse(combo2, out int num2) && num2 >= 1 && num2 <= 31;
 
-                if ((!int.TryParse(combo1, out int number) || number < 1 || number > 31) && (!int.TryParse(combo2, out int number2) || number2 < 1 || number2 > 31))
+                if (!isValidCombo1 || !isValidCombo2)
                 {
                     result.Error = "Only numbers from 1 to 31 are allowed.";
                     return result;
