@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net.Http.Headers;
 using System.Reflection;
@@ -10,20 +11,22 @@ namespace TresDos.Controllers
 {
     public class BetController : Controller
     {
+        private readonly IHttpClientFactory _clientFactory;
         DateTimeHelper _dateTimeHelper = new DateTimeHelper();
         private static readonly List<int> ValidAmounts = Enumerable.Range(2, 60).Select(i => i * 5).ToList(); // 10 to 300
+        public BetController(IHttpClientFactory clientFactory)
+        {
+            _clientFactory = clientFactory;
+        }
+
         #region Agents
         private List<SelectListItem> GetAgents()
         {
-            return new List<SelectListItem>
-        {
-            new SelectListItem { Value = "0", Text = "--" },
-            new SelectListItem { Value = "1", Text = "Anthony" },
-            new SelectListItem { Value = "2", Text = "Jazz" },
-            new SelectListItem { Value = "3", Text = "Loki" }
-        };
+            var agents = new AgentService();
+            return agents.GetAgentSelectList();
         }
         #endregion
+
         #region 3D
         [Route("Bet/3d")]
         public ActionResult ThreeD()
@@ -210,6 +213,10 @@ namespace TresDos.Controllers
         [Route("Bet/2d")]
         public ActionResult TwoD()
         {
+            var token = HttpContext.Session.GetString("JWToken");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login", "Auth");
+
             var batch = new LottoBatch();
             batch.TimeOptions = new List<SelectListItem>
             {

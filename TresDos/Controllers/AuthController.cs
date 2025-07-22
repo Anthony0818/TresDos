@@ -18,7 +18,7 @@ namespace TresDos.Controllers
         public async Task<IActionResult> Login(LoginModel model)
         {
             var client = _clientFactory.CreateClient("ApiClient");
-            var response = await client.PostAsJsonAsync("api/auth/login", model);
+            var response = await client.PostAsJsonAsync("/api/authapi/login", model);
 
             if (response.IsSuccessStatusCode)
             {
@@ -28,7 +28,7 @@ namespace TresDos.Controllers
                 //return RedirectToAction("Index", "Product");
                 var responseBody = await response.Content.ReadFromJsonAsync<TokenResponse>();
                 HttpContext.Session.SetString("JWToken", responseBody?.Token ?? "");
-                return RedirectToAction("Index", "Product");
+                return RedirectToAction("2d", "Bet");
             }
 
             ViewBag.Error = "Invalid login";
@@ -41,7 +41,7 @@ namespace TresDos.Controllers
         public async Task<IActionResult> Register(RegisterModel model)
         {
             var client = _clientFactory.CreateClient("ApiClient");
-            var response = await client.PostAsJsonAsync("api/auth/register", model);
+            var response = await client.PostAsJsonAsync("api/authapi/register", model);
 
             return response.IsSuccessStatusCode ? RedirectToAction("Login") : View(model);
         }

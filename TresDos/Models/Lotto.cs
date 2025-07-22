@@ -22,7 +22,7 @@ namespace TresDos.Models
     }
     public class LottoEntry
     {
-        public required string BettorName { get; set; }
+        public string BettorName { get; set; }
         public List<BetLine> Bets { get; set; } = new List<BetLine>();
     }
 
