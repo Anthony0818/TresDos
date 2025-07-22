@@ -1,12 +1,25 @@
 ﻿@model LottoBatch
 @using (Html.BeginForm("TwoD", "Bet", FormMethod.Post))
 {
+    <div class="row justify-content-center mb-3">
+        <div class="col-auto">
+            <!-- Auto-width center wrapper -->
+            <div class="row g-3">
+                <div class="col-6">
+                    @Html.TextBoxFor(model => model.SelectedDate, "{0:yyyy-MM-dd}", new { type = "date", @class = "form-control" })
+                </div>
+                <div class="col-6">
+                    @Html.DropDownListFor(m => m.SelectedTime, Model.TimeOptions, new { @class = "form-select", style = "width: 130px;" })
+                </div>
+            </div>
+        </div>
+    </div>
     <!--<div class="container mt-4">-->
     <div class="row">
         <div class="col-md-4 mb-3">
             <div class="card">
                 <div class="card-header">
-                    2D - Bet Entry (2PM, 5PM, 9PM)
+                    2D - Bet Entry (@Model.SelectedTime)
                 </div>
                 <div class="card-body">
                     <div class="container">
@@ -20,9 +33,9 @@
                                     <div class="container">
                                         <div class="row">
                                             <div class="col-auto">
-                                                <span class="">Friday, July 18, 2025</span>
+                                                <span class="">@Model.SelectedDate.ToString("dddd, MMMM dd, yyyy")</span>
                                                 <br>
-                                                <span class="h2">2D 9PM Draw</span>
+                                                <span class="h2">2D @Model.SelectedTime Draw</span>
                                             </div>
                                             <div class="col-auto ms-auto">
                                                 <img src="https://tresdos.xyz/images/lottoTypes/231210000.png" style="width:80px;">

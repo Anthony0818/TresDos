@@ -12,6 +12,13 @@ namespace TresDos.Models
         public string SelectedAgentText { get; set; }
         public List<SelectListItem> Agents { get; set; }
         public List<LottoEntry> Entries { get; set; } = new List<LottoEntry>();
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        public DateTime SelectedDate { get; set; }
+        public string SelectedTime { get; set; }
+
+        // Optional: list of options to bind to the dropdown
+        public List<SelectListItem> TimeOptions { get; set; }
+
     }
     public class LottoEntry
     {

@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using TresDos.Helper;
 using TresDos.Models;
 
 namespace TresDos.Controllers
 {
     public class BetController : Controller
     {
+        DateTimeHelper _dateTimeHelper = new DateTimeHelper();
         private static readonly List<int> ValidAmounts = Enumerable.Range(2, 60).Select(i => i * 5).ToList(); // 10 to 300
         #region Agents
         private List<SelectListItem> GetAgents()
@@ -209,6 +211,25 @@ namespace TresDos.Controllers
         public ActionResult TwoD()
         {
             var batch = new LottoBatch();
+            batch.TimeOptions = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "2PM", Text = "2PM" },
+                new SelectListItem { Value = "5PM", Text = "5PM" },
+                new SelectListItem { Value = "9PM", Text = "9PM" }
+            };
+
+            // Optionally pre-select a value
+            var now = _dateTimeHelper.GetPhilippineTime();
+            batch.SelectedDate = now.Date;
+
+            var twoPm = now.Date.AddHours(14);
+            var fivePm = now.Date.AddHours(17);
+
+            string selectedLabel = now <= twoPm ? "2PM" :
+                                   now <= fivePm ? "5PM" : "9PM";
+
+            batch.SelectedTime = selectedLabel;
+
             batch.Agents = GetAgents();
             return View(batch);
         }
