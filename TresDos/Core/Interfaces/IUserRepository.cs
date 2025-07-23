@@ -1,0 +1,15 @@
+﻿using TresDos.Application.DTOs.UserDto;
+using TresDos.Core.Entities;
+
+namespace TresDos.Core.Interfaces
+{
+    public interface IUserRepository
+    {
+        Task<IEnumerable<User>> GetAllAsync();
+        Task<User?> GetByIdAsync(int id);
+        Task UpdateAsync(User user);
+        Task DeleteAsync(int id);
+        Task<User?> GetByUsernameAsync(string username);
+        Task Register(User user);
+    }
+}

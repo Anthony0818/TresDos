@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
-using TresDos.Models;
+using TresDos.Application.Interfaces;
+using TresDos.Core.Entities;
 
-namespace TresDos.Controllers
+namespace TresDos.Controllers.Web
 {
     public class ProductController : Controller
     {
         private readonly IHttpClientFactory _clientFactory;
-
         public ProductController(IHttpClientFactory clientFactory)
         {
             _clientFactory = clientFactory;

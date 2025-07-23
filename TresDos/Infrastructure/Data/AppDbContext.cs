@@ -1,14 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using TresDos.Models;
+using TresDos.Core.Entities;
 
-namespace TresDos.Data
+namespace TresDos.Infrastructure.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
         public DbSet<User> Users { get; set; }
         public DbSet<Product> Products { get; set; }
+
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
     }
 }

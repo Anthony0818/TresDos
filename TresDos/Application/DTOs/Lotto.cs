@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
-namespace TresDos.Models
+namespace TresDos.Application.DTOs
 {
     public class LottoBatch
     {
@@ -36,8 +36,8 @@ namespace TresDos.Models
         public string Error { get; set; }   // Optional: for validation error
 
         public string BetTypeName =>
-            (BetType == "S" || BetType == "s") ? "Straight" :
-            (BetType == "R" || BetType == "r") ? "Random" :
+            BetType == "S" || BetType == "s" ? "Straight" :
+            BetType == "R" || BetType == "r" ? "Random" :
             "Invalid";
     }
 }

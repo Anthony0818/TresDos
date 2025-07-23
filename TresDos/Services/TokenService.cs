@@ -2,14 +2,15 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using TresDos.Models;
+using TresDos.Application.DTOs.UserDto;
+using TresDos.Core.Entities;
 
 public class TokenService
 {
     private readonly IConfiguration _config;
     public TokenService(IConfiguration config) => _config = config;
 
-    public string CreateToken(User user)
+    public string CreateToken(UserDto user)
     {
         var claims = new[]
         {

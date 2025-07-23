@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using TresDos.Application.DTOs;
 using TresDos.Helper;
-using TresDos.Models;
 
-namespace TresDos.Controllers
+namespace TresDos.Controllers.Web
 {
     public class BetController : Controller
     {

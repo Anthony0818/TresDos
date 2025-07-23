@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using TresDos.Models;
 
-namespace TresDos.Controllers
+namespace TresDos.Controllers.Web
 {
     public class HomeController : Controller
     {

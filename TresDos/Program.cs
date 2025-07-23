@@ -1,13 +1,35 @@
+using MediatR;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using TresDos.Data;
+using TresDos.Application;
+using TresDos.Application.Feature.Products.Commands;
+using TresDos.Application.Interfaces;
+using TresDos.Application.Mapping;
+using TresDos.Application.UseCases;
+using TresDos.Application.Validators;
+using TresDos.Core.Interfaces;
+using TresDos.Infrastructure.Data;
+using TresDos.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// MediatR – register all handlers in Application layer
+builder.Services.AddMediatR(typeof(CreateProductCommand).Assembly);
+
+// AutoMapper – register all profiles
+builder.Services.AddAutoMapper(typeof(ProductProfile).Assembly);
+
+// FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductValidator>();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters(); 
 
 builder.Services.AddSingleton<TokenService>();
 
@@ -83,6 +105,9 @@ builder.Services.AddHttpClient("ApiClient", client =>
 });
 builder.Services.AddSession();
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole(); // Adds console logger
+
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
@@ -102,6 +127,8 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllerRoute(
     name: "default",

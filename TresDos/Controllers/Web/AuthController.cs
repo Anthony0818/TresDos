@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TresDos.Models;
+using TresDos.Application.DTOs;
 
-namespace TresDos.Controllers
+namespace TresDos.Controllers.Web
 {
     public class AuthController : Controller
     {
