@@ -16,7 +16,7 @@ namespace TresDos.Infrastructure.Repositories
 
         public async Task<IEnumerable<Product>> GetAllAsync() => await _context.Products.ToListAsync();
 
-        public async Task<Product?> GetByIdAsync(Guid id) => await _context.Products.FindAsync(id);
+        public async Task<Product?> GetByIdAsync(int id) => await _context.Products.FindAsync(id);
 
         public async Task AddAsync(Product product)
         {
@@ -30,7 +30,7 @@ namespace TresDos.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task DeleteAsync(int id)
         {
             var product = await _context.Products.FindAsync(id);
             if (product != null)

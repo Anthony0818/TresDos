@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TresDos.Core.Entities;
 using TresDos.Core.Interfaces;
+using TresDos.Infrastructure.Data;
 
-namespace TresDos.Infrastructure.Data
+namespace TresDos.Infrastructure.Repositories
 {
     public class UserRepository : IUserRepository
     {

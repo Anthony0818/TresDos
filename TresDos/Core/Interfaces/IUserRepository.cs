@@ -1,5 +1,4 @@
-﻿using TresDos.Application.DTOs.UserDto;
-using TresDos.Core.Entities;
+﻿using TresDos.Core.Entities;
 
 namespace TresDos.Core.Interfaces
 {

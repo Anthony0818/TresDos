@@ -1,53 +1,50 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
-using TresDos.Application.DTOs.ProductDto;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using TresDos.Application.DTOs.UserDto;
-using TresDos.Application.Interfaces;
-using TresDos.Infrastructure;
+using TresDos.Application.Feature.Users.Commands;
+using TresDos.Feature.Users.Commands;
+
 
 [ApiController]
 [Route("api/[controller]")]
 public class AuthApiController : ControllerBase
 {
-    private readonly TokenService _tokenService;
-    private readonly IUserService _service;
+    private readonly IMediator _mediator;
+    private readonly ILogger<AuthApiController> _logger;
 
-    public AuthApiController(IUserService service, TokenService tokenService)
+    public AuthApiController(IMediator mediator, ILogger<AuthApiController> logger)
     {
-        _service = service;
-        _tokenService = tokenService;
+        _mediator = mediator;
+        _logger = logger;
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterUserDto dto)
+    public async Task<IActionResult> Register([FromBody] RegisterUserCommand command)
     {
-        //var user = await _service.Login(dto.Username);
-        //if (user.Username == dto.Username)
-        //    return BadRequest("User already exists.");
-
-        _service.Register(dto);
-        return Ok("User registered");
+        //var created = await _mediator.Send(command);
+        //return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        return Ok(await _mediator.Send(command));
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(UserDto dto)
+    public async Task<IActionResult> Login(LoginDto request)
     {
-        var user = await _service.GetByUsernameAsync(dto.Username);
-        if (user == null || !VerifyPassword(dto.Password, user.PasswordHash))
-            return Unauthorized("Invalid credentials");
-
-        var token = _tokenService.CreateToken(user);
-        return Ok(new { token });
+        _logger.LogInformation("Login request received for {Username}", request.Username);
+        try
+        {
+            var token = await _mediator.Send(new LoginCommand(request.Username, request.Password));
+            _logger.LogInformation("Login succeeded for {Username}", request.Username);
+            return Ok(new { Token = token });
+        } 
+        catch (UnauthorizedAccessException)
+        {
+            _logger.LogWarning("Unauthorized login attempt for {Username}", request.Username);
+            return Unauthorized(new { Error = "Invalid credentials" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Login failed for {Username}", request.Username);
+            return StatusCode(500, new { Error = "Internal server error" });
+        }
     }
-
-    private static string HashPassword(string password)
-    {
-        using var sha = SHA256.Create();
-        return Convert.ToBase64String(sha.ComputeHash(Encoding.UTF8.GetBytes(password)));
-    }
-
-    private static bool VerifyPassword(string password, string hash)
-        => HashPassword(password) == hash;
 }

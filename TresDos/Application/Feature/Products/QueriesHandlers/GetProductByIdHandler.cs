@@ -2,6 +2,7 @@
 using MediatR;
 using TresDos.Application.DTOs.ProductDto;
 using TresDos.Application.DTOs.UserDto;
+using TresDos.Application.Feature.Products.Queries;
 using TresDos.Core.Entities;
 using TresDos.Core.Interfaces;
 

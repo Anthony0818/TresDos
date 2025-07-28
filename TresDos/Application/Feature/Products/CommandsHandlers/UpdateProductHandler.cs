@@ -19,7 +19,7 @@ namespace TresDos.Application.Feature.Products.Handlers
             var product = await _repo.GetByIdAsync(request.Id)
                           ?? throw new KeyNotFoundException("Product not found");
 
-            product.Validate(request.Name, request.Price);
+            product.Validate(request.Name, request.Description, request.Price);
             await _repo.UpdateAsync(product);
             return Unit.Value;
         }

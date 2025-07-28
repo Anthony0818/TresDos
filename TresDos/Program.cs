@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
@@ -9,21 +9,39 @@ using TresDos.Application;
 using TresDos.Application.Feature.Products.Commands;
 using TresDos.Application.Interfaces;
 using TresDos.Application.Mapping;
-using TresDos.Application.UseCases;
 using TresDos.Application.Validators;
 using TresDos.Core.Interfaces;
 using TresDos.Infrastructure.Data;
 using TresDos.Infrastructure.Repositories;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug() // Set minimum log level
+    .WriteTo.Console()    // Log to console
+    .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day) // Log to file
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+// Replace default logging with Serilog
+builder.Host.UseSerilog();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// MediatR � register all handlers in Application layer
-builder.Services.AddMediatR(typeof(CreateProductCommand).Assembly);
+// 🔧 Register application services
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+// MediatR – register all handlers in Application layer
+// After (MediatR 13.x)
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(CreateProductCommand).Assembly);
+});
 
-// AutoMapper � register all profiles
+// AutoMapper – register all profiles
 builder.Services.AddAutoMapper(typeof(ProductProfile).Assembly);
 
 // FluentValidation
@@ -105,8 +123,8 @@ builder.Services.AddHttpClient("ApiClient", client =>
 });
 builder.Services.AddSession();
 
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole(); // Adds console logger
+//builder.Logging.ClearProviders();
+//builder.Logging.AddConsole(); // Adds console logger
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
@@ -120,6 +138,7 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
         options.RoutePrefix = "swagger"; // Swagger UI at /swagger
     });
+    app.UseDeveloperExceptionPage();
 }
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -128,7 +147,7 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+//app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllerRoute(
     name: "default",

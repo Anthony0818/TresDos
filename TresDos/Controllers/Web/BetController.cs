@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using TresDos.Application.DTOs;
+using TresDos.Core.Entities;
 using TresDos.Helper;
 
 namespace TresDos.Controllers.Web

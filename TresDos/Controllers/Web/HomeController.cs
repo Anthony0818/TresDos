@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using TresDos.Models;
+using TresDos.Application.DTOs;
 
 namespace TresDos.Controllers.Web
 {

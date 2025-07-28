@@ -2,10 +2,11 @@
 using MediatR;
 using TresDos.Application.DTOs.ProductDto;
 using TresDos.Application.DTOs.UserDto;
+using TresDos.Application.Feature.Products.Queries;
 using TresDos.Core.Interfaces;
 using TresDos.Infrastructure.Data;
 
-namespace TresDos.Application.Feature.Products.Queries
+namespace TresDos.Application.Feature.Products.QueriesHandlers
 {
     public class GetAllProductHandler : IRequestHandler<GetAllProductQuery, List<ProductDto>>
     {
