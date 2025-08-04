@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Azure.Core;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TresDos.Application.DTOs.UserDto;
 using TresDos.Application.Feature.Users.Commands;
@@ -21,9 +22,25 @@ public class AuthApiController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterUserCommand command)
     {
-        //var created = await _mediator.Send(command);
-        //return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        return Ok(await _mediator.Send(command));
+        try
+        {
+            return Ok(await _mediator.Send(command));
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Register failed for {RegisterUserCommand}", command);
+            return StatusCode(500, new { Error = "Internal server error" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Register failed for {RegisterUserCommand}", command);
+            return StatusCode(500, new { Error = "Internal server error" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Register failed for {RegisterUserCommand}", command);
+            return StatusCode(500, new { Error = "Internal server error" });
+        }
     }
 
     [HttpPost("login")]

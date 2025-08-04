@@ -6,6 +6,7 @@ namespace TresDos.Core.Interfaces
     {
         Task<IEnumerable<User>> GetAllAsync();
         Task<User?> GetByIdAsync(int id);
+        Task AddAsync(User user);
         Task UpdateAsync(User user);
         Task DeleteAsync(int id);
         Task<User?> GetByUsernameAsync(string username);

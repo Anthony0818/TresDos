@@ -2,6 +2,7 @@
 using TresDos.Core.Entities;
 using TresDos.Core.Interfaces;
 using TresDos.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore.SqlServer;
 
 namespace TresDos.Infrastructure.Repositories
 {
@@ -18,6 +19,11 @@ namespace TresDos.Infrastructure.Repositories
 
         public async Task<User?> GetByIdAsync(int id) => await _context.Users.FindAsync(id);
 
+        public async Task AddAsync(User user)
+        {
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+        }
         public async Task UpdateAsync(User user)
         {
             _context.Users.Update(user);

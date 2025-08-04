@@ -1,10 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using TresDos.Application.DTOs.ProductDto;
 using TresDos.Application.Feature.Products.Commands;
 using TresDos.Application.Feature.Products.Queries;
-using TresDos.Application.Interfaces;
-
 [ApiController]
 [Route("api/[controller]")]
 public class ProductsApiController : ControllerBase

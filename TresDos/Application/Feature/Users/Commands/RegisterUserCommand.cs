@@ -6,9 +6,10 @@ namespace TresDos.Feature.Users.Commands
         string Username, 
         string Password, 
         string Role,
+        string FirstName,
         string MiddleName,
         string LastName,
-        string CommissionPercentage,
+        int? CommissionPercentage,
         int? ParentId,
         bool? Status
         ) : IRequest<User>;

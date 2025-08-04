@@ -19,13 +19,13 @@ namespace TresDos.Controllers.Web
         {
             var client = _clientFactory.CreateClient("ApiClient");
             var response = await client.PostAsJsonAsync("/api/authapi/login", model);
-            var responseBody = await response.Content.ReadAsStringAsync();
-            //if (response.IsSuccessStatusCode)
-            //{
-            //    var responseBody = await response.Content.ReadFromJsonAsync<TokenResponse>();
-            //    HttpContext.Session.SetString("JWToken", responseBody?.Token ?? "");
-            //    return RedirectToAction("2d", "Bet");
-            //}
+            //var responseBody = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                var responseBody = await response.Content.ReadFromJsonAsync<TokenResponse>();
+                HttpContext.Session.SetString("JWToken", responseBody?.Token ?? "");
+                return RedirectToAction("2d", "Bet");
+            }
 
             ViewBag.Error = "Invalid login";
             return View();
