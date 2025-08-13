@@ -18,14 +18,26 @@ public class TwoDApiController : ControllerBase
     //    var created = await _mediator.Send(command);
     //    return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     //}
+    [HttpPost]
     public async Task<IActionResult> BulkInsert([FromBody] BulkInsertTwoDCommand command)
     {
-        var result = await _mediator.HandleAsync(request);
+        var result = await _mediator.Send(command);
 
         return Ok(new
         {
-            InsertedCount = result.Count,
-            InsertedEntries = result
+            InsertedEntries = result.Item1,
+            ProcessingResults = result.Item2.Select(r => new
+            {
+                r.id,
+                r.Bettor,
+                r.FirstDigit,
+                r.SecondDigit,
+                r.Type,
+                r.Amount,
+                r.Message,
+                r.IsInserted,
+                r.AvailableBalance
+            })
         });
     }
 }

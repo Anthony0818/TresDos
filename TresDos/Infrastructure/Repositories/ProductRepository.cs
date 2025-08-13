@@ -5,77 +5,39 @@ using TresDos.Infrastructure.Data;
 
 namespace TresDos.Infrastructure.Repositories
 {
-    public class TwoDRepository : ITwoDRepository
+    public class ProductRepository : IProductRepository
     {
         private readonly AppDbContext _context;
 
-        public TwoDRepository(AppDbContext context)
+        public ProductRepository(AppDbContext context)
         {
             _context = context;
         }
 
-        public async Task<IEnumerable<tb_TwoD>> GetAllAsync() => await _context.tb_TwoD.ToListAsync();
+        public async Task<IEnumerable<Product>> GetAllAsync() => await _context.Products.ToListAsync();
 
-        public async Task<tb_TwoD?> GetByIdAsync(int id) => await _context.tb_TwoD.FindAsync(id);
+        public async Task<Product?> GetByIdAsync(int id) => await _context.Products.FindAsync(id);
 
-        public async Task AddAsync(tb_TwoD entry)
+        public async Task AddAsync(Product product)
         {
-            _context.tb_TwoD.Add(entry);
+            _context.Products.Add(product);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(tb_TwoD entry)
+        public async Task UpdateAsync(Product product)
         {
-            _context.tb_TwoD.Update(entry);
+            _context.Products.Update(product);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var entry = await _context.tb_TwoD.FindAsync(id);
-            if (entry != null)
+            var product = await _context.Products.FindAsync(id);
+            if (product != null)
             {
-                _context.tb_TwoD.Remove(entry);
+                _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
             }
-        }
-
-        public async Task<decimal> GetRAMBLECurrentTotalAsync(
-            string typeCode,
-            int firstDigit,
-            int secondDigit)
-        {
-            return await _context.tb_TwoD
-                    .Where(e => e.Type == typeCode &&
-                               ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
-                                (e.FirstDigit == secondDigit && e.SecondDigit == secondDigit)))
-                    .SumAsync(e => e.Amount);
-        }
-        public async Task<decimal> GetSTRAIGHTCurrentTotalAsync()
-        {
-            return await _context.tb_TwoD.SumAsync(e => e.Amount);
-        }
-
-        public async Task AddEntriesAsync(IEnumerable<tb_TwoD> entries)
-        {
-            await _context.tb_TwoD.AddRangeAsync(entries);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<bool> EntryExistsAsync(
-            string bettor, 
-            int firstDigit,
-            int secondDigit,
-            decimal amount,
-            string type)
-        {
-            return await _context.tb_TwoD.AnyAsync(e => 
-                e.Bettor == bettor &&
-                e.FirstDigit == firstDigit &&
-                e.SecondDigit == secondDigit &&
-                e.Amount == amount &&
-                e.Type == type
-            );
         }
     }
 }

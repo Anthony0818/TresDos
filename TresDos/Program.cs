@@ -165,6 +165,13 @@ using TresDos.Feature.Users.Commands;
 using TresDos.Infrastructure.Data;
 using TresDos.Infrastructure.Repositories;
 using TresDos.Application.Feature.Users.Queries;
+using Serilog;
+using Microsoft.EntityFrameworkCore;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -194,6 +201,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITwoDRepository, TwoDRepository>();
 builder.Services.AddSingleton<TokenService>();
 
 #endregion

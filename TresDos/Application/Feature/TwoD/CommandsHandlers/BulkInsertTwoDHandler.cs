@@ -7,25 +7,7 @@ using TresDos.Application.DTOs.BetDto;
 
 namespace TresDos.Application.Feature.TwoD.Handlers
 {
-    //public class BulkInsertTwoDHandler : IRequestHandler<BulkInsertTwoDCommand, tb_TwoD>
-    //{
-    //    private readonly ITwoDRepository _repo;
-    //    private readonly IMapper _mapper;
-
-    //    public BulkInsertTwoDHandler(ITwoDRepository repo, IMapper mapper)
-    //    {
-    //        _repo = repo;
-    //        _mapper = mapper;
-    //    }
-
-    //    public async Task<Product> Handle(BulkInsertTwoDCommand request, CancellationToken cancellationToken)
-    //    {
-    //        var product = _mapper.Map<Product>(request);
-    //        await _repo.AddAsync(product);
-    //        return product;
-    //    }
-    //}
-    public class BulkInsertTwoDHandler : IRequestHandler<BulkInsertTwoDCommand, (List<tb_TwoD>, List<BulkInsertTwoDEntriesProcessingResultDto>, int)>
+    public class BulkInsertTwoDHandler : IRequestHandler<BulkInsertTwoDCommand, (List<tb_TwoD>, List<BulkInsertTwoDEntriesProcessingResultDto>)>
     {
         private readonly ITwoDRepository _repo;
 
@@ -34,7 +16,7 @@ namespace TresDos.Application.Feature.TwoD.Handlers
             _repo = repo;
         }
 
-        public async Task<(List<tb_TwoD>, List<BulkInsertTwoDEntriesProcessingResultDto>, int)> Handle(BulkInsertTwoDCommand request, CancellationToken cancellationToken)
+        public async Task<(List<tb_TwoD>, List<BulkInsertTwoDEntriesProcessingResultDto>)> Handle(BulkInsertTwoDCommand request, CancellationToken cancellationToken)
         {
             var inserted = new List<tb_TwoD>();
             var results = new List<BulkInsertTwoDEntriesProcessingResultDto>();
@@ -111,7 +93,7 @@ namespace TresDos.Application.Feature.TwoD.Handlers
             if (inserted.Any())
                 await _repo.AddEntriesAsync(inserted);
 
-            return (inserted, results, results.Count(r => r.IsInserted));
+            return (inserted, results);
         }
 
         private static string GetValidationKey(TwoDDto dto) =>

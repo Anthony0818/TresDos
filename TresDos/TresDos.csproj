@@ -20,6 +20,7 @@
   <ItemGroup>
     <Compile Remove="Application\Feature\Users\QueriesHandlers\GetProductByIdHandler.cs" />
     <Compile Remove="Application\Feature\Users\Queries\GetProductByIdQuery.cs" />
+    <Compile Remove="Controllers\Web\BetController.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,7 +56,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Application\DTOs\BetDto\" />
+    <Folder Include="Application\Feature\ThreeD\" />
+    <Folder Include="Application\Feature\TwoD\QueriesHandlers\" />
+    <Folder Include="Application\Feature\TwoD\Queries\" />
   </ItemGroup>
 
 </Project>

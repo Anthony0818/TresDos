@@ -5,5 +5,5 @@ namespace TresDos.Application.Feature.TwoD.Commands
 {
    public record BulkInsertTwoDCommand(
          BulkInsertTwoDEntriesRequestDto RequestDto
-       ) : IRequest<(List<tb_TwoD>, List<BulkInsertTwoDEntriesProcessingResultDto>, int)>;
+       ) : IRequest<(List<tb_TwoD>, List<BulkInsertTwoDEntriesProcessingResultDto>)>;
 }
