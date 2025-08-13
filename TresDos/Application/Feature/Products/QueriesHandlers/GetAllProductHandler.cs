@@ -8,7 +8,7 @@ using TresDos.Infrastructure.Data;
 
 namespace TresDos.Application.Feature.Products.QueriesHandlers
 {
-    public class GetAllProductHandler : IRequestHandler<GetAllProductQuery, List<ProductDto>>
+    public class GetAllProductHandler : IRequestHandler<GetAllProductQuery, List<TwoDDto>>
     {
         private readonly IMapper _mapper;
         private readonly IProductRepository _repo;
@@ -19,10 +19,10 @@ namespace TresDos.Application.Feature.Products.QueriesHandlers
             _mapper = mapper;
         }
 
-        public async Task<List<ProductDto>> Handle(GetAllProductQuery request, CancellationToken cancellationToken)
+        public async Task<List<TwoDDto>> Handle(GetAllProductQuery request, CancellationToken cancellationToken)
         {
             var products = await _repo.GetAllAsync();
-            return _mapper.Map<List<ProductDto>>(products);
+            return _mapper.Map<List<TwoDDto>>(products);
         }
     }
 }

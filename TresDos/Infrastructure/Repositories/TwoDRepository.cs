@@ -40,20 +40,50 @@ namespace TresDos.Infrastructure.Repositories
             }
         }
 
-        public async Task<decimal> GetRAMBLECurrentTotalAsync(
+        //public async Task<decimal> GetRAMBLECurrentTotalAsync(
+        //    string typeCode,
+        //    int firstDigit,
+        //    int secondDigit)
+        //{
+        //    return await _context.tb_TwoD
+        //            .Where(e => e.Type == typeCode &&
+        //                       ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
+        //                        (e.FirstDigit == secondDigit && e.SecondDigit == secondDigit)))
+        //            .SumAsync(e => e.Amount);
+        //}
+        //public async Task<decimal> GetSTRAIGHTCurrentTotalAsync(
+        //    string typeCode,
+        //    int firstDigit,
+        //    int secondDigit)
+        //{
+        //    return await _context.tb_TwoD
+        //           .Where(e => e.Type == typeCode &&
+        //                     e.FirstDigit == firstDigit && e.SecondDigit == secondDigit)
+        //           .SumAsync(e => e.Amount);
+        //}
+
+        public async Task<decimal> GetCurrentTotalAsync(
             string typeCode,
             int firstDigit,
             int secondDigit)
         {
-            return await _context.tb_TwoD
+            // This method combines the logic for both RAMBLE and STRAIGHT types
+            if (typeCode == "R")
+            {
+                return await _context.tb_TwoD
                     .Where(e => e.Type == typeCode &&
                                ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
-                                (e.FirstDigit == secondDigit && e.SecondDigit == secondDigit)))
+                                (e.FirstDigit == secondDigit && e.SecondDigit == firstDigit)))
                     .SumAsync(e => e.Amount);
-        }
-        public async Task<decimal> GetSTRAIGHTCurrentTotalAsync()
-        {
-            return await _context.tb_TwoD.SumAsync(e => e.Amount);
+            }
+            else
+            {
+                return await _context.tb_TwoD
+                        .Where(e => e.Type == typeCode &&
+                                   ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
+                                    (e.FirstDigit == secondDigit && e.SecondDigit == secondDigit)))
+                        .SumAsync(e => e.Amount);
+            }
         }
 
         public async Task AddEntriesAsync(IEnumerable<tb_TwoD> entries)
@@ -63,13 +93,13 @@ namespace TresDos.Infrastructure.Repositories
         }
 
         public async Task<bool> EntryExistsAsync(
-            string bettor, 
+            string bettor,
             int firstDigit,
             int secondDigit,
             decimal amount,
             string type)
         {
-            return await _context.tb_TwoD.AnyAsync(e => 
+            return await _context.tb_TwoD.AnyAsync(e =>
                 e.Bettor == bettor &&
                 e.FirstDigit == firstDigit &&
                 e.SecondDigit == secondDigit &&

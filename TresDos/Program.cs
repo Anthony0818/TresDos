@@ -157,15 +157,6 @@
 
 //app.Run();
 
-using System.Text;
-using FluentValidation;
-using FluentValidation.AspNetCore;
-using MediatR;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
-using Serilog;
 using TresDos.Application.Feature.Products.Commands;
 using TresDos.Application.Mapping;
 using TresDos.Application.Validators;
@@ -173,7 +164,6 @@ using TresDos.Core.Interfaces;
 using TresDos.Feature.Users.Commands;
 using TresDos.Infrastructure.Data;
 using TresDos.Infrastructure.Repositories;
-using TresDos.Application.Mapping;
 using TresDos.Application.Feature.Users.Queries;
 
 var builder = WebApplication.CreateBuilder(args);

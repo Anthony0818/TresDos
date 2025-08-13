@@ -8,7 +8,7 @@ using TresDos.Core.Interfaces;
 
 namespace TresDos.Application.Feature.Products.QueriesHandlers
 {
-    public class GetProductByIdHandler : IRequestHandler<GetProductByIdQuery, ProductDto>
+    public class GetProductByIdHandler : IRequestHandler<GetProductByIdQuery, TwoDDto>
     {
         private readonly IProductRepository _repo;
         private readonly IMapper _mapper;
@@ -19,12 +19,12 @@ namespace TresDos.Application.Feature.Products.QueriesHandlers
             _mapper = mapper;
         }
 
-        public async Task<ProductDto> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
+        public async Task<TwoDDto> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
         {
             var product = await _repo.GetByIdAsync(request.Id)
                           ?? throw new KeyNotFoundException("Product not found");
 
-            return _mapper.Map<ProductDto>(product);
+            return _mapper.Map<TwoDDto>(product);
         }
     }
 }
