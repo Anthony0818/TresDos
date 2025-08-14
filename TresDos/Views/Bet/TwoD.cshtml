@@ -1,5 +1,6 @@
 ﻿@using TresDos.Application.DTOs
-@model LottoBatch
+@using TresDos.Application.ViewModel.BetModel
+@model TwoDViewModel
 @using (Html.BeginForm("TwoD", "Bet", FormMethod.Post))
 {
     <div class="row justify-content-center mb-3">
@@ -36,7 +37,7 @@
                                             <div class="col-auto">
                                                 <span class="">@Model.SelectedDate.ToString("dddd, MMMM dd, yyyy")</span>
                                                 <br>
-                                                <span class="h2">2D @Model.SelectedTime Draw</span>
+                                                <span class="h2">@Model.SelectedTime</span>
                                             </div>
                                             <div class="col-auto ms-auto">
                                                 <img src="https://tresdos.xyz/images/lottoTypes/231210000.png" style="width:80px;">
@@ -123,7 +124,7 @@
                                                 {
                                                     <div class="card mb-3">
                                                         <div class="card-header">
-                                                            @bet.Combination=@bet.Amount@bet.BetType
+                                                            @bet.Combination=@bet.Amount@bet.Type
                                                         </div>
                                                         <div class="card-body">
                                                             <!--<h6 class="card-title mb-2">#@count</h6>-->

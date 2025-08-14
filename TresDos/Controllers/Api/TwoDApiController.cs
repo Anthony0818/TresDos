@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection.Metadata;
 using TresDos.Application.DTOs.BetDto;
@@ -18,8 +19,8 @@ public class TwoDApiController : ControllerBase
     //    var created = await _mediator.Send(command);
     //    return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     //}
-    [HttpPost]
-    public async Task<IActionResult> BulkInsert([FromBody] BulkInsertTwoDCommand command)
+    [HttpPost("BulkInsertTwoD")]
+    public async Task<IActionResult> BulkInsertTwoD([FromBody] BulkInsertTwoDCommand command)
     {
         var result = await _mediator.Send(command);
 
@@ -39,5 +40,12 @@ public class TwoDApiController : ControllerBase
                 r.AvailableBalance
             })
         });
+    }
+    [HttpPost("BulkValidateTwoD")]
+    public async Task<IActionResult> BulkValidateTwoD([FromBody] BulkValidateTwoDCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        return Ok(result);
     }
 }

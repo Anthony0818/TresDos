@@ -1,4 +1,6 @@
 ﻿@using TresDos.Application.DTOs
+@using TresDos.Application.ViewModel
+@using TresDos.Application.ViewModel.BetModel
 @* @model LottoBatch
 @using (Html.BeginForm("Submit", "Lotto", FormMethod.Post))
 {
@@ -35,7 +37,7 @@
 </table> *@
 
 
- @model LottoBatch
+ @model TwoDViewModel
 @{
     Layout = null;
 }

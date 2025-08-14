@@ -1,17 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
-namespace TresDos.Application.DTOs
+namespace TresDos.Application.ViewModel.BetModel
 {
-    public class LottoBatch
+    public class TwoDViewModel
     {
         [Required(ErrorMessage = "Combination Entry is required.")]
         public string Entry { get; set; }
-        [Range(1, int.MaxValue, ErrorMessage = "Agent is required.")]
+        [Required(ErrorMessage = "Select Agent.")]
+        [Display(Name = "Agent")]
         public int SelectedAgentID { get; set; }
         public string SelectedAgentText { get; set; }
         public List<SelectListItem> Agents { get; set; }
-        public List<LottoEntry> Entries { get; set; } = new List<LottoEntry>();
+        public List<Entry> Entries { get; set; } = new List<Entry>();
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime SelectedDate { get; set; }
         public string SelectedTime { get; set; }
@@ -20,24 +21,30 @@ namespace TresDos.Application.DTOs
         public List<SelectListItem> TimeOptions { get; set; }
 
     }
-    public class LottoEntry
+    public class Entry
     {
         public string BettorName { get; set; }
         public List<BetLine> Bets { get; set; } = new List<BetLine>();
+        public int UserID { get; set; }
+        public DateTime CreateDate { get; set; }
+        public string DrawType { get; set; }
+        public DateTime DrawDate { get; set; }
     }
 
     public class BetLine
     {
+        public Guid id { get; set; }
         public string RawInput { get; set; }
-        public string Bettor { get; set; }
         public string Combination { get; set; }
-        public string Amount { get; set; }
-        public string BetType { get; set; } // "S" or "R"
+        public int FirstDigit { get; set; }
+        public int SecondDigit { get; set; }
+        public string Type { get; set; }
+        public decimal Amount { get; set; }
         public string Error { get; set; }   // Optional: for validation error
 
         public string BetTypeName =>
-            BetType == "S" || BetType == "s" ? "Straight" :
-            BetType == "R" || BetType == "r" ? "Random" :
+            Type == "S" || Type == "s" ? "Straight" :
+            Type == "R" || Type == "r" ? "Random" :
             "Invalid";
     }
 }

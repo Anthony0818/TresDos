@@ -1,6 +1,6 @@
-﻿namespace TresDos.Application.DTOs
+﻿namespace TresDos.Application.ViewModel
 {
-    public class RegisterModel
+    public class LoginModel
     {
         public string Username { get; set; }
         public string Password { get; set; }

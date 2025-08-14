@@ -1,10 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
-using TresDos.Application.DTOs;
+using TresDos.Application.DTOs.BetDto;
+using TresDos.Application.ViewModel.BetModel;
 using TresDos.Core.Entities;
 using TresDos.Helper;
 
@@ -14,7 +19,7 @@ namespace TresDos.Controllers.Web
     {
         private readonly IHttpClientFactory _clientFactory;
         DateTimeHelper _dateTimeHelper = new DateTimeHelper();
-        private static readonly List<int> ValidAmounts = Enumerable.Range(2, 60).Select(i => i * 5).ToList(); // 10 to 300
+        private static readonly List<decimal> ValidAmounts = Enumerable.Range(1, 60).Select(i => i * 5m).ToList(); // 10 to 300
         public BetController(IHttpClientFactory clientFactory)
         {
             _clientFactory = clientFactory;
@@ -38,10 +43,16 @@ namespace TresDos.Controllers.Web
 
             var userList = users?.Select(u => new SelectListItem
             {
-                Text = u.FirstName + " " + u.MiddleName + " " + u.LastName,
+                Text = (u.FirstName + " " + u.MiddleName + " " + u.LastName),
                 Value = u.Id.ToString()
             }).ToList() ?? new List<SelectListItem>();
 
+            userList.Insert(0, new SelectListItem
+            {
+                Text = "-- Select Agent --",
+                Value = "",
+                Selected = true
+            });
             return userList;
         }
         #endregion
@@ -229,14 +240,9 @@ namespace TresDos.Controllers.Web
         //#endregion
 
         #region 2D
-        [Route("Bet/2d")]
-        public async Task<IActionResult> TwoD()
+        private async Task InitializeTwoDComponents(TwoDViewModel batch)
         {
-            var token = HttpContext.Session.GetString("JWToken");
-            if (string.IsNullOrEmpty(token))
-                return RedirectToAction("Login", "Auth");
-
-            var batch = new LottoBatch();
+            #region Use this for Checking Previous Bet dates
             batch.TimeOptions = new List<SelectListItem>
             {
                 new SelectListItem { Value = "2PM", Text = "2PM" },
@@ -251,77 +257,57 @@ namespace TresDos.Controllers.Web
             var twoPm = now.Date.AddHours(14);
             var fivePm = now.Date.AddHours(17);
 
-            string selectedLabel = now <= twoPm ? "2PM" :
-                                   now <= fivePm ? "5PM" : "9PM";
+            string selectedLabel = now <= twoPm ? "2D 2PM DRAW" :
+                                   now <= fivePm ? "2D 5PM DRAW" : "2D 9PM DRAW";
 
             batch.SelectedTime = selectedLabel;
+            #endregion
 
             batch.Agents = await GetAgentsUnderIncludingSelf(0);
+        }
+        [Route("Bet/2d")]
+        public async Task<IActionResult> TwoD(string TimeOptions, string SelectedDate)
+        {
+            var token = HttpContext.Session.GetString("JWToken");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login", "Auth");
+
+            var batch = new TwoDViewModel();
+
+            await InitializeTwoDComponents(batch);
+
             return View(batch);
         }
         [Route("Bet/2d")]
         [HttpPost]
-        public async Task<IActionResult> TwoD(LottoBatch rawInput, string action)
+        public async Task<IActionResult> TwoD(TwoDViewModel model, string action)
         {
-            var batch = new LottoBatch();
-            batch.Agents = await GetAgentsUnderIncludingSelf(0);
+            var batch = new TwoDViewModel();
+
+            await InitializeTwoDComponents(batch);
 
             if (action == "Validate")
-            { 
-                var lines = rawInput.Entry.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            {
+                var lines = model.Entry.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
-                LottoEntry currentEntry = null;
+                Entry currentEntry = null;
                 HashSet<string> bettorNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 HashSet<string> localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 string bettorName = string.Empty;
-                batch.SelectedAgentText = rawInput.SelectedAgentText;
+                batch.SelectedAgentText = model.SelectedAgentText;
 
                 foreach (var line in lines.Select(l => l.Trim()).Where(l => !string.IsNullOrEmpty(l)))
                 {
                     if (line.StartsWith("@"))
                     {
-                        bettorName = line.Substring(1).Trim();
-
-                        //if (bettorNames.Contains(bettorName))
-                        //{
-                        //    currentEntry = new LottoEntry
-                        //    {
-                        //        BettorName = bettorName + " (DUPLICATE)",
-                        //    };
-                        //    currentEntry.Bets.Add(new BetLine
-                        //    {
-                        //        RawInput = line,
-                        //        Error = $"Duplicate bettor name: {bettorName}"
-                        //    });
-                        //    batch.Entries.Add(currentEntry);
-                        //    continue;
-                        //}
-
-                        //bettorNames.Add(bettorName);
-                        currentEntry = new LottoEntry { BettorName = bettorName };
+                        //bettorName = line.Substring(1).Trim();
+                        bettorName = line.Trim();
+                        currentEntry = new Entry { BettorName = bettorName };
                         batch.Entries.Add(currentEntry);
-                        //localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                         continue;
                     }
                     else
                     {
-                        // Invalid - bet without bettor name
-                        //if (currentEntry == null)
-                        //{
-                        //    currentEntry = new LottoEntry
-                        //    {
-                        //        BettorName = "Unknown",
-                        //        Bets = new List<BetLine>
-                        //        {
-                        //            new BetLine
-                        //            {
-                        //                RawInput = line,
-                        //                Error = "Bet provided before @Bettor line"
-                        //            }
-                        //        }
-                        //    };
-                        //    batch.Entries.Add(currentEntry);
-                        //}
                         if (!line.Contains("=")) // It's a header like "test" or "@test"
                         {
                             ViewBag.InvalidBettorName = "There are errors on the submitted bets. Please check for the allowed Bets format. Check that Bettor Name is prefixed with @.\r\nIncorrect raw bets given";
@@ -334,26 +320,12 @@ namespace TresDos.Controllers.Web
                         continue;
 
                     var bet = Parse2DBetLine(line);
-                    //string key = $"{Normalize2DCombo(bet.Combination)}-{bet.BetType}"bet.Combination
-                    //if (bet.Combination != null)
-                    //{
-                    //    string key = $"{bettorName} {bet.Combination}={bet.Amount}{bet.BetType}";
-
-                    //    if (localDuplicates.Contains(key))
-                    //    {
-                    //        bet.Error = "Duplicate entry";
-                    //    }
-                    //    else
-                    //    {
-                    //        localDuplicates.Add(key);
-                    //    }
-                    //}
                     if (bet.Combination != null)
                     {
                         string normalizedCombination = bet.Combination;
 
                         // For Rambolito, normalize by sorting numbers
-                        if (bet.BetType.ToLower() == "r")
+                        if (bet.Type.ToLower() == "r")
                         {
                             var numbers = bet.Combination.Split('-')
                                                          .Select(n => n.Trim())
@@ -361,7 +333,7 @@ namespace TresDos.Controllers.Web
                             normalizedCombination = string.Join("-", numbers);
                         }
 
-                        string key = $"{bettorName} {normalizedCombination}={bet.Amount}{bet.BetType}";
+                        string key = $"{bettorName} {normalizedCombination}={bet.Amount}{bet.Type}";
 
                         if (localDuplicates.Contains(key))
                         {
@@ -372,9 +344,96 @@ namespace TresDos.Controllers.Web
                             localDuplicates.Add(key);
                         }
                     }
+                    bet.id = Guid.NewGuid(); // Assign a new ID for each bet
 
                     currentEntry.Bets.Add(bet);
                 }
+
+
+                var entries = new List<TwoDDto>();
+
+                // Loop through Entries
+                foreach (var entry in batch.Entries)
+                {
+                    // Filter valid bet lines
+                    var validBets = entry.Bets
+                        .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
+                        .ToList();
+
+                    if (!validBets.Any())
+                        continue; // Skip entries with no valid bets
+
+                    foreach (var bet in validBets)
+                    {
+                        var twoDDto = new TwoDDto
+                        {
+                            id = bet.id,
+                            Bettor = entry.BettorName,
+                            UserID = model.SelectedAgentID,
+                            CreateDate = _dateTimeHelper.GetPhilippineTime(),
+                            DrawType = batch.SelectedTime,
+                            DrawDate = batch.SelectedDate,
+                            FirstDigit = bet.FirstDigit,
+                            SecondDigit = bet.SecondDigit,
+                            Type = bet.Type,
+                            Amount = bet.Amount
+                        };
+
+                        entries.Add(twoDDto);
+                    }
+                }
+
+                var requestDto = new
+                {
+                    requestDto = new BulkValidateTwoDEntriesRequestDto
+                    {
+                        Entries = entries
+                    }
+                };
+
+                if (!requestDto.Equals(null) && requestDto.requestDto.Entries.Count > 0)
+                {
+                    var client = _clientFactory.CreateClient("ApiClient");
+                    client.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("JWToken"));
+
+                    var response = await client.PostAsJsonAsync("api/TwoDApi/BulkValidateTwoD", requestDto);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadFromJsonAsync<List<BulkValidateTwoDEntriesProcessingResultDto>>();
+                        if (result != null && result.Any())
+                        {
+                            foreach (var resultItem in result)
+                            {
+                                // Loop through Entries
+                                foreach (var entry in batch.Entries)
+                                {
+                                    // Filter valid bet lines
+                                    var validBets = entry.Bets
+                                        .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
+                                        .ToList();
+                                    var item = validBets.FirstOrDefault(o => o.id == resultItem.id);
+
+                                    if (item != null)
+                                    {
+                                        //Update bet error
+                                        item.Error = resultItem.Message;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var error = await response.Content.ReadAsStringAsync();
+                        ViewBag.Error = error;
+                    }
+                }
+            }
+            else //Submitting of Bets
+            { 
+
             }
             return View("TwoD", batch);
         }
@@ -385,8 +444,6 @@ namespace TresDos.Controllers.Web
                 RawInput = line
             };
 
-            //var match = Regex.Match(line, @"^@[\w\s\.]+$|^(\d{1,2})\s*[-*\s]\s*(\d{1,2})\s*=\s*(\d{2,3})([sSrR])$");
-            //var match = Regex.Match(line, @"^(\d{1,2})\s*([^\da-zA-Z=]+|\s+)\s*(\d{1,2})\s*=\s*(\d{2,3})([sSrR])$");
             var match = Regex.Match(line, @"^(\d{1,2})\s*([^\da-zA-Z=]+|\s+)\s*(\d{1,2})\s*=\s*(?:([rRsS])\s*(\d{2,3})|(\d{2,3})\s*([rRsS]))$");
             if (!match.Success)
             {
@@ -402,10 +459,11 @@ namespace TresDos.Controllers.Web
                 var amountStr = match.Groups[5].Success ? match.Groups[5].Value : match.Groups[6].Value;//match.Groups[4].Value;
                 var type = match.Groups[4].Success ? match.Groups[4].Value : match.Groups[7].Value;//match.Groups[5].Value.ToUpper();
 
-                result.Bettor = line.Substring(1).Trim();
                 result.Combination = combo1 + "-" + combo2;
-                result.Amount = amountStr;
-                result.BetType = type.ToUpper();
+                result.FirstDigit = Convert.ToInt32(combo1);
+                result.SecondDigit = Convert.ToInt32(combo2);
+                result.Amount = Convert.ToDecimal(amountStr);
+                result.Type = type.ToUpper();
 
                 bool isValidCombo1 = int.TryParse(combo1, out int num1) && num1 >= 1 && num1 <= 31;
                 bool isValidCombo2 = int.TryParse(combo2, out int num2) && num2 >= 1 && num2 <= 31;
@@ -416,7 +474,7 @@ namespace TresDos.Controllers.Web
                     return result;
                 }
 
-                if (!int.TryParse(amountStr, out int amount))
+                if (!decimal.TryParse(amountStr, out decimal amount))
                 {
                     result.Error = $"Invalid amount: {amountStr}";
                     return result;
@@ -428,7 +486,7 @@ namespace TresDos.Controllers.Web
                     return result;
                 }
 
-                result.Amount = amount.ToString();
+                result.Amount = amount;
                 // Add additional 2D-only logic if needed
             }
             catch (Exception ex)
@@ -453,146 +511,146 @@ namespace TresDos.Controllers.Web
         //}
         #endregion
 
-        #region LP3
-        private const int MaxRange = 31; // Change this dynamically if needed
+    //    #region LP3
+    //    private const int MaxRange = 31; // Change this dynamically if needed
 
-        [HttpGet]
-        public IActionResult ValidateLp3()
-        {
-            return View();
-        }
+    //    [HttpGet]
+    //    public IActionResult ValidateLp3()
+    //    {
+    //        return View();
+    //    }
 
-        [HttpPost]
-        public IActionResult ValidateLp3(string rawInput)
-        {
-            int maxRange = 31; // Can be from config or passed from user input
-            var batch = LP3Parser.ParseLP3(rawInput, maxRange);
+    //    [HttpPost]
+    //    public IActionResult ValidateLp3(string rawInput)
+    //    {
+    //        int maxRange = 31; // Can be from config or passed from user input
+    //        var batch = LP3Parser.ParseLP3(rawInput, maxRange);
 
-            // Optionally, filter and show only invalid entries
-            var invalid = batch.Entries
-                .SelectMany(e => e.Bets.Where(b => !string.IsNullOrEmpty(b.Error)))
-                .ToList();
+    //        // Optionally, filter and show only invalid entries
+    //        var invalid = batch.Entries
+    //            .SelectMany(e => e.Bets.Where(b => !string.IsNullOrEmpty(b.Error)))
+    //            .ToList();
 
-            // Send to view or return as JSON
-            return View(batch);
-        }
-        public static class LP3Parser
-        {
-            private static readonly HashSet<int> ValidAmounts = new()
-    {
-        10, 15, 20, 25, 30, 35, 40, 45, 50, 55,
-        60, 65, 70, 75, 80, 85, 90, 95, 100,
-        150, 200, 250, 300, 350, 400, 450, 500
-    };
+    //        // Send to view or return as JSON
+    //        return View(batch);
+    //    }
+    //    public static class LP3Parser
+    //    {
+    //        private static readonly HashSet<int> ValidAmounts = new()
+    //{
+    //    10, 15, 20, 25, 30, 35, 40, 45, 50, 55,
+    //    60, 65, 70, 75, 80, 85, 90, 95, 100,
+    //    150, 200, 250, 300, 350, 400, 450, 500
+    //};
 
-            private static readonly Regex EntryRegex = new(
-                @"^(?<combo>(\d{1,2})\s*-\s*(\d{1,2})\s*-\s*(\d{1,2}))\s*=\s*(?:(?<amount>\d{2,3})\s*(?<type>RB)?|(?<typeOnly>FB))$",
-                RegexOptions.IgnoreCase | RegexOptions.Compiled
-            );
+    //        private static readonly Regex EntryRegex = new(
+    //            @"^(?<combo>(\d{1,2})\s*-\s*(\d{1,2})\s*-\s*(\d{1,2}))\s*=\s*(?:(?<amount>\d{2,3})\s*(?<type>RB)?|(?<typeOnly>FB))$",
+    //            RegexOptions.IgnoreCase | RegexOptions.Compiled
+    //        );
 
-            public static LottoBatch ParseLP3(string rawInput, int maxRange)
-            {
-                var batch = new LottoBatch();
-                var lines = rawInput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                                    .Select(l => l.Trim()).ToList();
+    //        public static LottoBatch ParseLP3(string rawInput, int maxRange)
+    //        {
+    //            var batch = new LottoBatch();
+    //            var lines = rawInput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+    //                                .Select(l => l.Trim()).ToList();
 
-                LottoEntry currentEntry = null;
+    //            LottoEntry currentEntry = null;
 
-                foreach (var line in lines)
-                {
-                    if (line.StartsWith("@"))
-                    {
-                        currentEntry = new LottoEntry { BettorName = line };
-                        batch.Entries.Add(currentEntry);
-                        continue;
-                    }
+    //            foreach (var line in lines)
+    //            {
+    //                if (line.StartsWith("@"))
+    //                {
+    //                    currentEntry = new LottoEntry { BettorName = line };
+    //                    batch.Entries.Add(currentEntry);
+    //                    continue;
+    //                }
 
-                    if (currentEntry == null)
-                    {
-                        // Invalid - bet without bettor name
-                        batch.Entries.Add(new LottoEntry
-                        {
-                            BettorName = "Unknown",
-                            Bets = new List<BetLine>
-                    {
-                        new BetLine
-                        {
-                            RawInput = line,
-                            Error = "Bet provided before @Bettor line"
-                        }
-                    }
-                        });
-                        continue;
-                    }
+    //                if (currentEntry == null)
+    //                {
+    //                    // Invalid - bet without bettor name
+    //                    batch.Entries.Add(new LottoEntry
+    //                    {
+    //                        BettorName = "Unknown",
+    //                        Bets = new List<BetLine>
+    //                {
+    //                    new BetLine
+    //                    {
+    //                        RawInput = line,
+    //                        Error = "Bet provided before @Bettor line"
+    //                    }
+    //                }
+    //                    });
+    //                    continue;
+    //                }
 
-                    var match = EntryRegex.Match(line);
-                    var betLine = new BetLine { RawInput = line, Bettor = currentEntry.BettorName };
+    //                var match = EntryRegex.Match(line);
+    //                var betLine = new BetLine { RawInput = line, Bettor = currentEntry.BettorName };
 
-                    if (!match.Success)
-                    {
-                        betLine.Error = "Invalid format";
-                        currentEntry.Bets.Add(betLine);
-                        continue;
-                    }
+    //                if (!match.Success)
+    //                {
+    //                    betLine.Error = "Invalid format";
+    //                    currentEntry.Bets.Add(betLine);
+    //                    continue;
+    //                }
 
-                    var comboPart = match.Groups["combo"].Value;
-                    var numbers = comboPart.Split('-').Select(n => n.Trim()).ToArray();
+    //                var comboPart = match.Groups["combo"].Value;
+    //                var numbers = comboPart.Split('-').Select(n => n.Trim()).ToArray();
 
-                    if (numbers.Length != 3)
-                    {
-                        betLine.Error = "Combination must have exactly 3 numbers";
-                        currentEntry.Bets.Add(betLine);
-                        continue;
-                    }
+    //                if (numbers.Length != 3)
+    //                {
+    //                    betLine.Error = "Combination must have exactly 3 numbers";
+    //                    currentEntry.Bets.Add(betLine);
+    //                    continue;
+    //                }
 
-                    if (numbers.Any(n => !int.TryParse(n, out int num) || num < 1 || num > maxRange))
-                    {
-                        betLine.Error = $"Numbers must be in range 1–{maxRange}";
-                        currentEntry.Bets.Add(betLine);
-                        continue;
-                    }
+    //                if (numbers.Any(n => !int.TryParse(n, out int num) || num < 1 || num > maxRange))
+    //                {
+    //                    betLine.Error = $"Numbers must be in range 1–{maxRange}";
+    //                    currentEntry.Bets.Add(betLine);
+    //                    continue;
+    //                }
 
-                    var amountStr = match.Groups["amount"].Value;
-                    var type = match.Groups["type"].Value.ToUpper();
-                    var typeOnly = match.Groups["typeOnly"].Value.ToUpper();
+    //                var amountStr = match.Groups["amount"].Value;
+    //                var type = match.Groups["type"].Value.ToUpper();
+    //                var typeOnly = match.Groups["typeOnly"].Value.ToUpper();
 
-                    if (!string.IsNullOrEmpty(typeOnly))
-                    {
-                        if (typeOnly != "FB")
-                        {
-                            betLine.Error = "Invalid bet type";
-                        }
-                        else
-                        {
-                            betLine.Amount = "0";
-                            betLine.BetType = "FB";
-                            betLine.Combination = string.Join("-", numbers);
-                        }
-                    }
-                    else
-                    {
-                        if (!int.TryParse(amountStr, out int amount) || !ValidAmounts.Contains(amount))
-                        {
-                            betLine.Error = "Invalid amount";
-                        }
-                        else if (!string.IsNullOrEmpty(type) && type != "RB")
-                        {
-                            betLine.Error = "Invalid bet type";
-                        }
-                        else
-                        {
-                            betLine.Amount = amount.ToString();
-                            betLine.BetType = string.IsNullOrEmpty(type) ? "NORMAL" : type;
-                            betLine.Combination = string.Join("-", numbers);
-                        }
-                    }
+    //                if (!string.IsNullOrEmpty(typeOnly))
+    //                {
+    //                    if (typeOnly != "FB")
+    //                    {
+    //                        betLine.Error = "Invalid bet type";
+    //                    }
+    //                    else
+    //                    {
+    //                        betLine.Amount = 0;
+    //                        betLine.Type = "FB";
+    //                        betLine.Combination = string.Join("-", numbers);
+    //                    }
+    //                }
+    //                else
+    //                {
+    //                    if (!int.TryParse(amountStr, out int amount) || !ValidAmounts.Contains(amount))
+    //                    {
+    //                        betLine.Error = "Invalid amount";
+    //                    }
+    //                    else if (!string.IsNullOrEmpty(type) && type != "RB")
+    //                    {
+    //                        betLine.Error = "Invalid bet type";
+    //                    }
+    //                    else
+    //                    {
+    //                        betLine.Amount = amount;
+    //                        betLine.Type = string.IsNullOrEmpty(type) ? "NORMAL" : type;
+    //                        betLine.Combination = string.Join("-", numbers);
+    //                    }
+    //                }
 
-                    currentEntry.Bets.Add(betLine);
-                }
+    //                currentEntry.Bets.Add(betLine);
+    //            }
 
-                return batch;
-            }
-        }
-        #endregion
+    //            return batch;
+    //        }
+    //    }
+    //    #endregion
     }
 }

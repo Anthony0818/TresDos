@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TresDos.Application.DTOs;
+using TresDos.Application.ViewModel;
 
 namespace TresDos.Controllers.Web
 {

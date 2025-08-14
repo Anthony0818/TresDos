@@ -327,6 +327,10 @@ builder.Services.AddHttpClient("ApiClient", client =>
 
 #endregion
 
+#region Other Config
+builder.Configuration.GetValue<int>("BetSettings:TwoDMaxBet");
+#endregion
+
 #endregion
 
 #region Configure Middleware Pipeline

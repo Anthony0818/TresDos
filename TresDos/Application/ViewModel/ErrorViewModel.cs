@@ -1,4 +1,4 @@
-namespace TresDos.Application.DTOs
+namespace TresDos.Application.ViewModel
 {
     public class ErrorViewModel
     {
