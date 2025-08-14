@@ -185,7 +185,7 @@
                                             <div class="card-body" id="validBetsSection" style="display: none">
                                                     @foreach (var entry in validEntries)
                                                     {
-                                                        <p class="text-success fw-bold mb-1">@($"@{entry.BettorName}")</p>
+                                                        <p class="text-success fw-bold mb-1">@($"{entry.BettorName}")</p>
                                                         @foreach (var bet in entry.ValidBets)
                                                         {
                                                             <p class="text-success mb-1">@bet.RawInput</p>
@@ -219,7 +219,7 @@
                                             <div class="card-body" id="invalidBetsSection">
                                                     @foreach (var entry in invalidEntries)
                                                     {
-                                                        <p class="text-danger fw-bold mb-1">@($"@{entry.BettorName}")</p>
+                                                        <p class="text-danger fw-bold mb-1">@($"{entry.BettorName}")</p>
                                                         @foreach (var bet in entry.InvalidBets)
                                                         {
                                                             <p class="text-danger mb-1">@bet.RawInput (@bet.Error)</p>
@@ -254,7 +254,7 @@
                                             <div class="card-body" id="allBetsSection" style="display: none">
                                                 @foreach (var entry in allEntries)
                                                 {
-                                                    <p class="fw-bold mb-1">@($"@{entry.BettorName}")</p>
+                                                    <p class="fw-bold mb-1">@($"{entry.BettorName}")</p>
                                                     @foreach (var bet in entry.AllBets)
                                                     {
                                                         <p class="mb-1">

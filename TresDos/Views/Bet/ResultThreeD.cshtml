@@ -150,7 +150,7 @@
                 var validBets = entry.Bets.Where(b => string.IsNullOrEmpty(b.Error)).ToList();
                 if (validBets.Any())
                 {
-                    @($"@{entry.BettorName}\n")
+                    @($"{entry.BettorName}\n")
                     foreach (var bet in validBets)
                     {
                         @($"{bet.RawInput}\n")
@@ -169,7 +169,7 @@
                 var invalidBets = entry.Bets.Where(b => !string.IsNullOrEmpty(b.Error)).ToList();
                 if (invalidBets.Any())
                 {
-                    @($"@{entry.BettorName}\n")
+                    @($"{entry.BettorName}\n")
                     foreach (var bet in invalidBets)
                     {
                         @($"{bet.RawInput}\n")
@@ -185,7 +185,7 @@
         @{
             foreach (var entry in Model.Entries)
             {
-                @($"@{entry.BettorName}\n")
+                @($"{entry.BettorName}\n")
                 foreach (var bet in entry.Bets)
                 {
                     @($"{bet.RawInput}\n")
