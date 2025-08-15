@@ -59,6 +59,7 @@
     <Folder Include="Application\Feature\ThreeD\" />
     <Folder Include="Application\Feature\TwoD\QueriesHandlers\" />
     <Folder Include="Application\Feature\TwoD\Queries\" />
+    <Folder Include="Application\ViewModel\DropDownModel\" />
   </ItemGroup>
 
 </Project>

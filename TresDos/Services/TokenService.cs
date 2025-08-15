@@ -3,9 +3,9 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using TresDos.Application.DTOs.UserDto;
-using TresDos.Core.Entities;
+using TresDos.Services;
 
-public class TokenService
+public class TokenService : ITokenService
 {
     private readonly IConfiguration _config;
     public TokenService(IConfiguration config) => _config = config;

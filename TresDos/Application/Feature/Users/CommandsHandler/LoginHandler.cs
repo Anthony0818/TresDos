@@ -4,15 +4,16 @@ using System.Text;
 using TresDos.Application.DTOs.UserDto;
 using TresDos.Application.Feature.Users.Commands;
 using TresDos.Core.Interfaces;
+using TresDos.Services;
 
 namespace TresDos.Application.Feature.Users.CommandsHandler
 {
     public class LoginHandler : IRequestHandler<LoginCommand, string>
     {
         private readonly IUserRepository _repo;
-        private readonly TokenService _tokenService;
+        private readonly ITokenService _tokenService;
 
-        public LoginHandler(IUserRepository repo, TokenService tokenService)
+        public LoginHandler(IUserRepository repo, ITokenService tokenService)
         {
             _repo = repo;
             _tokenService = tokenService;

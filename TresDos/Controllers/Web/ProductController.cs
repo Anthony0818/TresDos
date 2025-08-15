@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
-using TresDos.Application.Interfaces;
 using TresDos.Core.Entities;
 
 namespace TresDos.Controllers.Web

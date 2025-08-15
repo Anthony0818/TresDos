@@ -12,17 +12,20 @@ using TresDos.Application.DTOs.BetDto;
 using TresDos.Application.ViewModel.BetModel;
 using TresDos.Core.Entities;
 using TresDos.Helper;
+using TresDos.Services;
 
 namespace TresDos.Controllers.Web
 {
     public class BetController : Controller
     {
+        private readonly ICacheDrawSettings _drawSettings;
         private readonly IHttpClientFactory _clientFactory;
         DateTimeHelper _dateTimeHelper = new DateTimeHelper();
         private static readonly List<decimal> ValidAmounts = Enumerable.Range(1, 60).Select(i => i * 5m).ToList(); // 10 to 300
-        public BetController(IHttpClientFactory clientFactory)
+        public BetController(IHttpClientFactory clientFactory, ICacheDrawSettings drawSettings)
         {
             _clientFactory = clientFactory;
+            _drawSettings = drawSettings;
         }
 
         #region Agents
@@ -242,26 +245,28 @@ namespace TresDos.Controllers.Web
         #region 2D
         private async Task InitializeTwoDComponents(TwoDViewModel batch)
         {
-            #region Use this for Checking Previous Bet dates
-            batch.TimeOptions = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "2PM", Text = "2PM" },
-                new SelectListItem { Value = "5PM", Text = "5PM" },
-                new SelectListItem { Value = "9PM", Text = "9PM" }
-            };
-
-            // Optionally pre-select a value
             var now = _dateTimeHelper.GetPhilippineTime();
+
+            var drawSettings = await _drawSettings.GetDataAsync();
+            var filteredDrawSettings =  drawSettings.Where(ds => ds.DrawType.Contains("2D"))
+                        .ToList();
+            foreach (var ds in filteredDrawSettings)
+            {
+                batch.TimeOptions.Add(new SelectListItem
+                {
+                    Text = ds.DrawType,
+                    Value = ds.DrawTime.ToString()
+                });
+            }
+
+            // Find the schedule with the closest DrawTime to now
+            var currentDraw = drawSettings
+                .OrderBy(s => Math.Abs((s.DrawTime - now).TotalSeconds))
+                .FirstOrDefault();
+            
             batch.SelectedDate = now.Date;
 
-            var twoPm = now.Date.AddHours(14);
-            var fivePm = now.Date.AddHours(17);
-
-            string selectedLabel = now <= twoPm ? "2D 2PM DRAW" :
-                                   now <= fivePm ? "2D 5PM DRAW" : "2D 9PM DRAW";
-
-            batch.SelectedTime = selectedLabel;
-            #endregion
+            batch.SelectedTime = currentDraw?.DrawType == null ? string.Empty : currentDraw.DrawType;
 
             batch.Agents = await GetAgentsUnderIncludingSelf(0);
         }
@@ -280,7 +285,7 @@ namespace TresDos.Controllers.Web
         }
         [Route("Bet/2d")]
         [HttpPost]
-        public async Task<IActionResult> TwoD(TwoDViewModel model, string action)
+        public async Task<IActionResult> TwoD(TwoDViewModel model, string action, string TimeOptions, string SelectedDate)
         {
             var batch = new TwoDViewModel();
 

@@ -150,7 +150,7 @@
                         var invalidBets = entry.Bets.Where(b => !string.IsNullOrEmpty(b.Error)).ToList();
                         if (invalidBets.Any())
                         {
-                            @($"{entry.BettorName}\n")
+                            @($"@{entry.BettorName}\n")
                             foreach (var bet in invalidBets)
                             {
                                 @($"{bet.RawInput}\n")
