@@ -340,34 +340,19 @@
                         <div class="card-body">
                             <h2>Employees</h2>
 
-                            <table id="employeeTable" class="display" style="width:100%">
+                            <table id="betsTable">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Department</th>
-                                        <th>Email</th>
+                                        <th>Bettor</th>
+                                        <th>FirstDigit</th>
+                                        <th>SecondDigit</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>DrawType</th>
+                                        <th>DrawDate</th>
                                     </tr>
                                 </thead>
                             </table>
-
-                            <!--<script>
-                                $(document).ready(function () {
-                                    $('#employeeTable').DataTable({
-                                        "ajax": {
-                                            "url": "@Url.Action("GetEmployees", "Employee")",
-                                            "type": "GET",
-                                            "datatype": "json"
-                                        },
-                                        "columns": [
-                                            { "data": "Id" },
-                                            { "data": "Name" },
-                                            { "data": "Department" },
-                                            { "data": "Email" }
-                                        ]
-                                    });
-                                });
-                            </script>-->
                         </div>
                     </div>
                 </div>
@@ -389,14 +374,53 @@
 <!--</div>-->
 
 }
-<script>
-    document.querySelector("[name='SelectedAgentID']").addEventListener('change', function () {
-        var selectedOption = this.options[this.selectedIndex];
-        document.getElementById("selectedAgentText").value = selectedOption.text;
-    });
-</script>
 
 @section Scripts {
+
+    <script type="text/javascript">
+        document.querySelector("[name='SelectedAgentID']").addEventListener('change', function () {
+            var selectedOption = this.options[this.selectedIndex];
+            document.getElementById("selectedAgentText").value = selectedOption.text;
+        });
+    </script>
+
     <!-- Enables client-side validation -->
     <partial name="_ValidationScriptsPartial" />
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            if (!$.fn.DataTable.isDataTable('#betsTable')) {
+                new DataTable('#betsTable', {
+                    destroy: true,
+                    ajax: {
+                        url: '@Url.Action("LoadTwoDBetsAsync", "Bet")',
+                        type: 'GET',
+                        dataType: 'json',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        data: function(d) {
+                            return {
+                                drawType: '@Model.DrawType'
+                            };
+                        }
+                    },
+                    columns: [
+                        { data: 'Bettor' },
+                        { data: 'FirstDigit' },
+                        { data: 'SecondDigit' },
+                        { data: 'Type' },
+                        { data: 'Amount' },
+                        { data: 'DrawType' },
+                        {
+                            data: 'DrawDate',
+                            render: function(data) {
+                                return new Date(data).toLocaleDateString();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    </script>
 }

@@ -517,8 +517,12 @@ namespace TresDos.Controllers.Web
 
             return result;
         }
-        [HttpPost]
-        public async Task<JsonResult> LoadDataAsync(string drawType)
+        //[HttpPost]
+        //public async Task<JsonResult> LoadTwoDBetsAsync(string drawType)
+        //[HttpGet("LoadTwoDBetsAsync/{drawType}")]
+        [Route("Bet/LoadTwoDBetsAsync")]
+        [HttpGet]
+        public async Task<IActionResult> LoadTwoDBetsAsync(string drawType)
         {
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
@@ -530,7 +534,9 @@ namespace TresDos.Controllers.Web
 
             int? userId = HttpContext.Session.GetInt32("UserId");
             var drawDate = _dateTimeHelper.GetPhilippineTime();
-            var response = await client.GetAsync($"api/TwoDApi/GetBetsByUserIdDrawTypeDrawDate/{userId}/{drawType}/{drawDate}");
+            var response = await client.GetAsync(
+                $"api/TwoDApi/GetBetsByUserIdDrawTypeDrawDate/{userId}/{Uri.EscapeDataString(drawType)}/{drawDate}"
+                );
             if (response.IsSuccessStatusCode)
             {
                 var twoDBets = await response.Content.ReadFromJsonAsync<List<tb_TwoD>>();

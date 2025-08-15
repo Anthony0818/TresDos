@@ -25,6 +25,9 @@ namespace TresDos.Controllers.Web
             //var responseBody = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
+                var json = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(json);
+
                 //var responseBody = await response.Content.ReadFromJsonAsync<TokenResponse>();
                 var responseBody = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
                 HttpContext.Session.SetString("JWToken", responseBody?.Token ?? "");

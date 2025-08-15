@@ -49,9 +49,9 @@ public class AuthApiController : ControllerBase
         _logger.LogInformation("Login request received for {Username}", request.Username);
         try
         {
-            var token = await _mediator.Send(new LoginCommand(request.Username, request.Password));
+            var response = await _mediator.Send(new LoginCommand(request.Username, request.Password));
             _logger.LogInformation("Login succeeded for {Username}", request.Username);
-            return Ok(new { Token = token });
+            return Ok(response);
         } 
         catch (UnauthorizedAccessException)
         {
