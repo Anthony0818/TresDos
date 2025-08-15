@@ -524,7 +524,7 @@ namespace TresDos.Controllers.Web
         [HttpGet]
         public async Task<IActionResult> LoadTwoDBetsAsync(string drawType)
         {
-            drawType = "2D 5PM Draw";// For testing purposes, you can remove this line later
+            //drawType = "2D 5PM Draw";// For testing purposes, you can remove this line later
 
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
