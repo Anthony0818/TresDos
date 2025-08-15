@@ -248,25 +248,36 @@ namespace TresDos.Controllers.Web
             var now = _dateTimeHelper.GetPhilippineTime();
 
             var drawSettings = await _drawSettings.GetDataAsync();
-            var filteredDrawSettings =  drawSettings.Where(ds => ds.DrawType.Contains("2D"))
-                        .ToList();
-            foreach (var ds in filteredDrawSettings)
+            var filteredDrawSettings = drawSettings
+                .Where(ds => ds.DrawType.Contains("2D"))
+                .ToList();
+
+            if (filteredDrawSettings.Any())
             {
-                batch.TimeOptions.Add(new SelectListItem
+                batch.TimeOptions ??= new List<SelectListItem>();
+
+                foreach (var ds in filteredDrawSettings)
                 {
-                    Text = ds.DrawType,
-                    Value = ds.DrawTime.ToString()
-                });
+                    batch.TimeOptions.Add(new SelectListItem
+                    {
+                        Text = ds.DrawType,
+                        Value = ds.DrawType
+                    });
+                }
             }
 
             // Find the schedule with the closest DrawTime to now
             var currentDraw = drawSettings
-                .OrderBy(s => Math.Abs((s.DrawTime - now).TotalSeconds))
+                .OrderBy(s => Math.Abs((s.DrawTime - now.TimeOfDay).TotalSeconds))
                 .FirstOrDefault();
             
-            batch.SelectedDate = now.Date;
+            batch.DrawDate = now.Date;
 
-            batch.SelectedTime = currentDraw?.DrawType == null ? string.Empty : currentDraw.DrawType;
+            batch.DrawTime = currentDraw?.DrawTime ?? now.TimeOfDay;
+
+            batch.DrawCutOffTime = currentDraw?.CutOffTime ?? now.TimeOfDay; // Default to 30 minutes after DrawTime if not set
+
+            batch.DrawType = currentDraw?.DrawType == null ? string.Empty : currentDraw.DrawType;
 
             batch.Agents = await GetAgentsUnderIncludingSelf(0);
         }
@@ -376,8 +387,8 @@ namespace TresDos.Controllers.Web
                             Bettor = entry.BettorName,
                             UserID = model.SelectedAgentID,
                             CreateDate = _dateTimeHelper.GetPhilippineTime(),
-                            DrawType = batch.SelectedTime,
-                            DrawDate = batch.SelectedDate,
+                            DrawType = batch.DrawType,
+                            DrawDate = batch.DrawDate,
                             FirstDigit = bet.FirstDigit,
                             SecondDigit = bet.SecondDigit,
                             Type = bet.Type,

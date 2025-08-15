@@ -20,13 +20,18 @@ namespace TresDos.Core.Interfaces
         Task<decimal> GetCurrentTotalAsync(
              string typeCode,
              int firstDigit,
-             int secondDigit);
+             int secondDigit,
+             string drawType,
+             DateTime drawDate
+            );
         Task AddEntriesAsync(IEnumerable<tb_TwoD> entries);
         Task<bool> EntryExistsAsync(
             string bettor,
             int firstDigit,
             int secondDigit,
             decimal amount,
-            string type);
+            string type,
+            string drawType,
+            DateTime drawDate);
     }
 }

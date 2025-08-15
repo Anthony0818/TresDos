@@ -40,38 +40,20 @@ namespace TresDos.Infrastructure.Repositories
             }
         }
 
-        //public async Task<decimal> GetRAMBLECurrentTotalAsync(
-        //    string typeCode,
-        //    int firstDigit,
-        //    int secondDigit)
-        //{
-        //    return await _context.tb_TwoD
-        //            .Where(e => e.Type == typeCode &&
-        //                       ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
-        //                        (e.FirstDigit == secondDigit && e.SecondDigit == secondDigit)))
-        //            .SumAsync(e => e.Amount);
-        //}
-        //public async Task<decimal> GetSTRAIGHTCurrentTotalAsync(
-        //    string typeCode,
-        //    int firstDigit,
-        //    int secondDigit)
-        //{
-        //    return await _context.tb_TwoD
-        //           .Where(e => e.Type == typeCode &&
-        //                     e.FirstDigit == firstDigit && e.SecondDigit == secondDigit)
-        //           .SumAsync(e => e.Amount);
-        //}
-
         public async Task<decimal> GetCurrentTotalAsync(
             string typeCode,
             int firstDigit,
-            int secondDigit)
+            int secondDigit,
+            string drawType,
+            DateTime drawDate)
         {
             // This method combines the logic for both RAMBLE and STRAIGHT types
             if (typeCode == "R")
             {
                 return await _context.tb_TwoD
                     .Where(e => e.Type == typeCode &&
+                                e.DrawType == drawType &&
+                                e.DrawDate == drawDate &&
                                ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
                                 (e.FirstDigit == secondDigit && e.SecondDigit == firstDigit)))
                     .SumAsync(e => e.Amount);
@@ -80,6 +62,8 @@ namespace TresDos.Infrastructure.Repositories
             {
                 return await _context.tb_TwoD
                         .Where(e => e.Type == typeCode &&
+                                    e.DrawType == drawType &&
+                                    e.DrawDate == drawDate &&
                                    ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
                                     (e.FirstDigit == secondDigit && e.SecondDigit == secondDigit)))
                         .SumAsync(e => e.Amount);
@@ -97,14 +81,18 @@ namespace TresDos.Infrastructure.Repositories
             int firstDigit,
             int secondDigit,
             decimal amount,
-            string type)
+            string type,
+            string drawType,
+            DateTime drawDate)
         {
             return await _context.tb_TwoD.AnyAsync(e =>
                 e.Bettor == bettor &&
                 e.FirstDigit == firstDigit &&
                 e.SecondDigit == secondDigit &&
                 e.Amount == amount &&
-                e.Type == type
+                e.Type == type &&
+                e.DrawType == drawType &&
+                e.DrawDate == drawDate
             );
         }
     }

@@ -8,7 +8,7 @@ using TresDos.Services;
 
 namespace TresDos.Application.Feature.Users.CommandsHandler
 {
-    public class LoginHandler : IRequestHandler<LoginCommand, string>
+    public class LoginHandler : IRequestHandler<LoginCommand, LoginResponseDto>
     {
         private readonly IUserRepository _repo;
         private readonly ITokenService _tokenService;
@@ -19,7 +19,7 @@ namespace TresDos.Application.Feature.Users.CommandsHandler
             _tokenService = tokenService;
         }
 
-        public async Task<string> Handle(LoginCommand request, CancellationToken cancellationToken)
+        public async Task<LoginResponseDto> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             var user = await _repo.GetByUsernameAsync(request.Username);
 
@@ -36,7 +36,19 @@ namespace TresDos.Application.Feature.Users.CommandsHandler
 
             var token = _tokenService.CreateToken(userDto);
 
-            return token;
+            return new LoginResponseDto
+            {
+                Token = token,
+                UserDetail = new UserDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    MiddleName = user.MiddleName,
+                    LastName = user.LastName,
+                    CommissionPercentage = user.CommissionPercentage,
+                    ParentId = user.ParentId
+                }
+            };
         }
         private static string HashPassword(string password)
         {

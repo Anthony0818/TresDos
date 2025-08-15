@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Application\DTOs\TokenResponse.cs" />
     <Compile Remove="Application\Feature\Users\QueriesHandlers\GetProductByIdHandler.cs" />
     <Compile Remove="Application\Feature\Users\Queries\GetProductByIdQuery.cs" />
   </ItemGroup>

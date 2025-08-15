@@ -31,7 +31,15 @@ namespace TresDos.Application.Feature.TwoD.Handlers
                 string validationKey = GetValidationKey(dto);
 
                 // 1. Check if this exact entry already exists (including bettor)
-                bool exists = await _repo.EntryExistsAsync(dto.Bettor, dto.FirstDigit, dto.SecondDigit, dto.Amount, dto.Type);
+                bool exists = await _repo.EntryExistsAsync(
+                    dto.Bettor, 
+                    dto.FirstDigit, 
+                    dto.SecondDigit, 
+                    dto.Amount, 
+                    dto.Type,
+                    dto.DrawType,
+                    dto.DrawDate
+                    );
                 if (exists)
                 {
                     results.Add(Failed(dto, "Duplicate entry already exists", GetAvailable(runningTotals, validationKey, maxLimitPerCombo)));
@@ -41,7 +49,13 @@ namespace TresDos.Application.Feature.TwoD.Handlers
                 // 2. Load running total from DB if first time seeing this combo
                 if (!runningTotals.ContainsKey(validationKey))
                 {
-                    decimal existing = await _repo.GetCurrentTotalAsync(dto.Type, dto.FirstDigit, dto.SecondDigit);
+                    decimal existing = await _repo.GetCurrentTotalAsync(
+                        dto.Type, 
+                        dto.FirstDigit, 
+                        dto.SecondDigit,
+                        dto.DrawType,
+                        dto.DrawDate
+                        );
                     runningTotals[validationKey] = existing;
                 }
 

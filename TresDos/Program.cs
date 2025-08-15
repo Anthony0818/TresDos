@@ -43,9 +43,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 #region Dependency Injection (Repositories, Services)
 builder.Services.AddHttpContextAccessor();
 
+//Repositories
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITwoDRepository, TwoDRepository>();
+builder.Services.AddScoped<IDrawSetingsRepository, DrawSetingsRepository>();
+
+//Services
 builder.Services.AddSingleton<ITokenService,TokenService>();
 builder.Services.AddSingleton<ICacheDrawSettings, CacheDrawSettings>();
 #endregion

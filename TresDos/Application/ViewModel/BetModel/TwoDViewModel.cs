@@ -14,8 +14,10 @@ namespace TresDos.Application.ViewModel.BetModel
         public List<SelectListItem> Agents { get; set; }
         public List<Entry> Entries { get; set; } = new List<Entry>();
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
-        public DateTime SelectedDate { get; set; }
-        public string SelectedTime { get; set; }
+        public DateTime DrawDate { get; set; }
+        public string DrawType { get; set; }
+        public TimeSpan DrawTime { get; set; }
+        public TimeSpan DrawCutOffTime { get; set; }
 
         // Optional: list of options to bind to the dropdown
         public List<SelectListItem> TimeOptions { get; set; }

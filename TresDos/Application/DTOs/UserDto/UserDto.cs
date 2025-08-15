@@ -10,5 +10,7 @@
         public string FirstName { get; set; } = string.Empty;
         public string MiddleName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        public int? CommissionPercentage { get; set; } = 0;
+        public int? ParentId { get; set; } = 0;
     }
 }

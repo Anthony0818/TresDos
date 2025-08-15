@@ -8,10 +8,10 @@
             <!-- Auto-width center wrapper -->
             <div class="row g-3">
                 <div class="col-6">
-                    @Html.TextBoxFor(model => model.SelectedDate, "{0:yyyy-MM-dd}", new { type = "date", @class = "form-control" })
+                    @Html.TextBoxFor(model => model.DrawDate, "{0:yyyy-MM-dd}", new { type = "date", @class = "form-control" })
                 </div>
                 <div class="col-6">
-                    @Html.DropDownListFor(m => m.SelectedTime, Model.TimeOptions, new { @class = "form-select", style = "width: 130px;" })
+                    @Html.DropDownListFor(m => m.DrawType, Model.TimeOptions, new { @class = "form-select", style = "width: 130px;" })
                 </div>
             </div>
         </div>
@@ -21,7 +21,7 @@
         <div class="col-md-4 mb-3">
             <div class="card">
                 <div class="card-header">
-                    2D - Bet Entry (@Model.SelectedTime)
+                    2D - Bet Entry (@Model.DrawType)
                 </div>
                 <div class="card-body">
                     <div class="container">
@@ -35,20 +35,20 @@
                                     <div class="container">
                                         <div class="row">
                                             <div class="col-auto">
-                                                <span class="">@Model.SelectedDate.ToString("dddd, MMMM dd, yyyy")</span>
+                                                <span class="">@Model.DrawDate.ToString("dddd, MMMM dd, yyyy")</span>
                                                 <br>
-                                                <span class="h2">@Model.SelectedTime</span>
+                                                <span class="h2">@Model.DrawType</span>
                                             </div>
                                             <div class="col-auto ms-auto">
-                                                <img src="https://tresdos.xyz/images/lottoTypes/231210000.png" style="width:80px;">
+                                                <img src="~/images/2d.png" style="width:80px;" />
                                             </div>
                                         </div>
                                     </div>
 
                                     <hr>
-                                    <span class="h6">Cut Off Time: 09:00 PM</span>
+                                    <span class="h6">Cut Off Time: @DateTime.Today.Add(Model.DrawCutOffTime).ToString("hh:mm tt")</span>
                                     <br>
-                                    <span class="h6">Draw Time: 09:00 PM</span>
+                                    <span class="h6">Draw Time: @DateTime.Today.Add(Model.DrawTime).ToString("hh:mm tt")</span>
 
                                 </div>
                             </div>
@@ -338,8 +338,36 @@
                             2D - Bets (2PM)
                         </div>
                         <div class="card-body">
-                            <h5 class="card-title">Card 2</h5>
-                            <p class="card-text">This is the second card.</p>
+                            <h2>Employees</h2>
+
+                            <table id="employeeTable" class="display" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Email</th>
+                                    </tr>
+                                </thead>
+                            </table>
+
+                            <!--<script>
+                                $(document).ready(function () {
+                                    $('#employeeTable').DataTable({
+                                        "ajax": {
+                                            "url": "@Url.Action("GetEmployees", "Employee")",
+                                            "type": "GET",
+                                            "datatype": "json"
+                                        },
+                                        "columns": [
+                                            { "data": "Id" },
+                                            { "data": "Name" },
+                                            { "data": "Department" },
+                                            { "data": "Email" }
+                                        ]
+                                    });
+                                });
+                            </script>-->
                         </div>
                     </div>
                 </div>

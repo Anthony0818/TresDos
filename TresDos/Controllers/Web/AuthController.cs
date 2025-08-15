@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using TresDos.Application.DTOs;
+using TresDos.Application.DTOs.UserDto;
 using TresDos.Application.ViewModel;
 
 namespace TresDos.Controllers.Web
@@ -23,8 +25,16 @@ namespace TresDos.Controllers.Web
             //var responseBody = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
-                var responseBody = await response.Content.ReadFromJsonAsync<TokenResponse>();
+                //var responseBody = await response.Content.ReadFromJsonAsync<TokenResponse>();
+                var responseBody = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
                 HttpContext.Session.SetString("JWToken", responseBody?.Token ?? "");
+                HttpContext.Session.SetInt32("UserId", responseBody?.UserDetail.Id ?? 0);
+                HttpContext.Session.SetString("UserFirstName", responseBody?.UserDetail.FirstName ?? string.Empty);
+                HttpContext.Session.SetString("UserMiddleName", responseBody?.UserDetail.MiddleName ?? string.Empty);
+                HttpContext.Session.SetString("UserLastName", responseBody?.UserDetail.LastName ?? string.Empty);
+                HttpContext.Session.SetInt32("UserCommission", responseBody?.UserDetail.CommissionPercentage ?? 0);
+                HttpContext.Session.SetInt32("UserParentId", responseBody?.UserDetail.ParentId ?? 0);
+
                 return RedirectToAction("2d", "Bet");
             }
 

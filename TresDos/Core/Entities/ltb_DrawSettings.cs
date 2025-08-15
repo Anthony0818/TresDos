@@ -4,8 +4,8 @@
     {
         public int id { get; set; }
         public string DrawType { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime CutOffTime { get; set; }
-        public DateTime DrawTime { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan CutOffTime { get; set; }
+        public TimeSpan DrawTime { get; set; }
     }
 }
