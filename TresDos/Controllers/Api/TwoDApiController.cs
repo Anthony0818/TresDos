@@ -6,6 +6,7 @@ using TresDos.Application.DTOs.BetDto;
 using TresDos.Application.Feature.Products.Commands;
 using TresDos.Application.Feature.Products.Queries;
 using TresDos.Application.Feature.TwoD.Commands;
+using TresDos.Application.Feature.TwoD.Queries;
 [ApiController]
 [Route("api/[controller]")]
 public class TwoDApiController : ControllerBase
@@ -13,12 +14,6 @@ public class TwoDApiController : ControllerBase
     private readonly IMediator _mediator;
     public TwoDApiController(IMediator mediator) => _mediator = mediator;
 
-    //[HttpPost]
-    //public async Task<IActionResult> Create([FromBody] CreateProductCommand command)
-    //{
-    //    var created = await _mediator.Send(command);
-    //    return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-    //}
     [HttpPost("BulkInsertTwoD")]
     public async Task<IActionResult> BulkInsertTwoD([FromBody] BulkInsertTwoDCommand command)
     {
@@ -47,5 +42,19 @@ public class TwoDApiController : ControllerBase
         var result = await _mediator.Send(command);
 
         return Ok(result);
+    }
+    [HttpGet("GetBetsByUserIdDrawTypeDrawDate/{userId}/{drawType}/{drawDate}")]
+    public async Task<IActionResult> GetBetsByUserIdDrawTypeDrawDate(
+         int userId,
+         string drawType,
+         DateTime drawDate)
+    {
+        var query = new GetBetsByUserIdDrawTypeDrawDateQuery(userId, drawType, drawDate);
+        var twoBets = await _mediator.Send(query);
+
+        if (twoBets == null)
+            return NotFound();
+
+        return Ok(twoBets);
     }
 }

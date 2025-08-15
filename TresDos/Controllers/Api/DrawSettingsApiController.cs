@@ -9,5 +9,5 @@ public class DrawSettingsApiController : ControllerBase
     public DrawSettingsApiController(IMediator mediator) => _mediator = mediator;
 
     [HttpGet]
-    public async Task<IActionResult> Get() => Ok(await _mediator.Send(new GetAllDrawSettingsQuery()));
+    public async Task<IActionResult> Get() => Ok(await _mediator.Send(new GetUserBetEntiesQuery()));
 }

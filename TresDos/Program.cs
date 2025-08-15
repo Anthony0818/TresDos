@@ -66,7 +66,7 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(GetAllUserQuery).Assembly);
 
     //Draw Settings
-    cfg.RegisterServicesFromAssembly(typeof(GetAllDrawSettingsQuery).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(GetUserBetEntiesQuery).Assembly);
 });
 
 #endregion

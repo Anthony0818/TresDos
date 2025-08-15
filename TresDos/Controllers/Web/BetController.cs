@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using TresDos.Application.DTOs.BetDto;
+using TresDos.Application.DTOs.ProductDto;
 using TresDos.Application.ViewModel.BetModel;
 using TresDos.Core.Entities;
 using TresDos.Helper;
@@ -298,6 +299,10 @@ namespace TresDos.Controllers.Web
         [HttpPost]
         public async Task<IActionResult> TwoD(TwoDViewModel model, string action, string TimeOptions, string SelectedDate)
         {
+            var token = HttpContext.Session.GetString("JWToken");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login", "Auth");
+
             var batch = new TwoDViewModel();
 
             await InitializeTwoDComponents(batch);
@@ -512,161 +517,173 @@ namespace TresDos.Controllers.Web
 
             return result;
         }
-        //private string Normalize2DCombo(string combo)
-        //{
-        //    if (string.IsNullOrWhiteSpace(combo))
-        //        return string.Empty;
+        [HttpPost]
+        public async Task<JsonResult> LoadDataAsync(string drawType)
+        {
+            var token = HttpContext.Session.GetString("JWToken");
+            if (string.IsNullOrEmpty(token))
+                return Json(new { error = "Unauthorized" });
 
-        //    var digits = combo.Replace(" ", "-").ToCharArray();
+            var client = _clientFactory.CreateClient("ApiClient");
+            client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("JWToken"));
 
-        //    //if (digits.Length != 2)
-        //    //    return string.Empty;
-
-        //    Array.Sort(digits);
-        //    return string.Join("-", digits);
-        //}
+            int? userId = HttpContext.Session.GetInt32("UserId");
+            var drawDate = _dateTimeHelper.GetPhilippineTime();
+            var response = await client.GetAsync($"api/TwoDApi/GetBetsByUserIdDrawTypeDrawDate/{userId}/{drawType}/{drawDate}");
+            if (response.IsSuccessStatusCode)
+            {
+                var twoDBets = await response.Content.ReadFromJsonAsync<List<tb_TwoD>>();
+                return Json(new { data = twoDBets });
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                return Json(new { error });
+            }
+        }
         #endregion
 
-    //    #region LP3
-    //    private const int MaxRange = 31; // Change this dynamically if needed
+        //    #region LP3
+        //    private const int MaxRange = 31; // Change this dynamically if needed
 
-    //    [HttpGet]
-    //    public IActionResult ValidateLp3()
-    //    {
-    //        return View();
-    //    }
+        //    [HttpGet]
+        //    public IActionResult ValidateLp3()
+        //    {
+        //        return View();
+        //    }
 
-    //    [HttpPost]
-    //    public IActionResult ValidateLp3(string rawInput)
-    //    {
-    //        int maxRange = 31; // Can be from config or passed from user input
-    //        var batch = LP3Parser.ParseLP3(rawInput, maxRange);
+        //    [HttpPost]
+        //    public IActionResult ValidateLp3(string rawInput)
+        //    {
+        //        int maxRange = 31; // Can be from config or passed from user input
+        //        var batch = LP3Parser.ParseLP3(rawInput, maxRange);
 
-    //        // Optionally, filter and show only invalid entries
-    //        var invalid = batch.Entries
-    //            .SelectMany(e => e.Bets.Where(b => !string.IsNullOrEmpty(b.Error)))
-    //            .ToList();
+        //        // Optionally, filter and show only invalid entries
+        //        var invalid = batch.Entries
+        //            .SelectMany(e => e.Bets.Where(b => !string.IsNullOrEmpty(b.Error)))
+        //            .ToList();
 
-    //        // Send to view or return as JSON
-    //        return View(batch);
-    //    }
-    //    public static class LP3Parser
-    //    {
-    //        private static readonly HashSet<int> ValidAmounts = new()
-    //{
-    //    10, 15, 20, 25, 30, 35, 40, 45, 50, 55,
-    //    60, 65, 70, 75, 80, 85, 90, 95, 100,
-    //    150, 200, 250, 300, 350, 400, 450, 500
-    //};
+        //        // Send to view or return as JSON
+        //        return View(batch);
+        //    }
+        //    public static class LP3Parser
+        //    {
+        //        private static readonly HashSet<int> ValidAmounts = new()
+        //{
+        //    10, 15, 20, 25, 30, 35, 40, 45, 50, 55,
+        //    60, 65, 70, 75, 80, 85, 90, 95, 100,
+        //    150, 200, 250, 300, 350, 400, 450, 500
+        //};
 
-    //        private static readonly Regex EntryRegex = new(
-    //            @"^(?<combo>(\d{1,2})\s*-\s*(\d{1,2})\s*-\s*(\d{1,2}))\s*=\s*(?:(?<amount>\d{2,3})\s*(?<type>RB)?|(?<typeOnly>FB))$",
-    //            RegexOptions.IgnoreCase | RegexOptions.Compiled
-    //        );
+        //        private static readonly Regex EntryRegex = new(
+        //            @"^(?<combo>(\d{1,2})\s*-\s*(\d{1,2})\s*-\s*(\d{1,2}))\s*=\s*(?:(?<amount>\d{2,3})\s*(?<type>RB)?|(?<typeOnly>FB))$",
+        //            RegexOptions.IgnoreCase | RegexOptions.Compiled
+        //        );
 
-    //        public static LottoBatch ParseLP3(string rawInput, int maxRange)
-    //        {
-    //            var batch = new LottoBatch();
-    //            var lines = rawInput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-    //                                .Select(l => l.Trim()).ToList();
+        //        public static LottoBatch ParseLP3(string rawInput, int maxRange)
+        //        {
+        //            var batch = new LottoBatch();
+        //            var lines = rawInput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+        //                                .Select(l => l.Trim()).ToList();
 
-    //            LottoEntry currentEntry = null;
+        //            LottoEntry currentEntry = null;
 
-    //            foreach (var line in lines)
-    //            {
-    //                if (line.StartsWith("@"))
-    //                {
-    //                    currentEntry = new LottoEntry { BettorName = line };
-    //                    batch.Entries.Add(currentEntry);
-    //                    continue;
-    //                }
+        //            foreach (var line in lines)
+        //            {
+        //                if (line.StartsWith("@"))
+        //                {
+        //                    currentEntry = new LottoEntry { BettorName = line };
+        //                    batch.Entries.Add(currentEntry);
+        //                    continue;
+        //                }
 
-    //                if (currentEntry == null)
-    //                {
-    //                    // Invalid - bet without bettor name
-    //                    batch.Entries.Add(new LottoEntry
-    //                    {
-    //                        BettorName = "Unknown",
-    //                        Bets = new List<BetLine>
-    //                {
-    //                    new BetLine
-    //                    {
-    //                        RawInput = line,
-    //                        Error = "Bet provided before @Bettor line"
-    //                    }
-    //                }
-    //                    });
-    //                    continue;
-    //                }
+        //                if (currentEntry == null)
+        //                {
+        //                    // Invalid - bet without bettor name
+        //                    batch.Entries.Add(new LottoEntry
+        //                    {
+        //                        BettorName = "Unknown",
+        //                        Bets = new List<BetLine>
+        //                {
+        //                    new BetLine
+        //                    {
+        //                        RawInput = line,
+        //                        Error = "Bet provided before @Bettor line"
+        //                    }
+        //                }
+        //                    });
+        //                    continue;
+        //                }
 
-    //                var match = EntryRegex.Match(line);
-    //                var betLine = new BetLine { RawInput = line, Bettor = currentEntry.BettorName };
+        //                var match = EntryRegex.Match(line);
+        //                var betLine = new BetLine { RawInput = line, Bettor = currentEntry.BettorName };
 
-    //                if (!match.Success)
-    //                {
-    //                    betLine.Error = "Invalid format";
-    //                    currentEntry.Bets.Add(betLine);
-    //                    continue;
-    //                }
+        //                if (!match.Success)
+        //                {
+        //                    betLine.Error = "Invalid format";
+        //                    currentEntry.Bets.Add(betLine);
+        //                    continue;
+        //                }
 
-    //                var comboPart = match.Groups["combo"].Value;
-    //                var numbers = comboPart.Split('-').Select(n => n.Trim()).ToArray();
+        //                var comboPart = match.Groups["combo"].Value;
+        //                var numbers = comboPart.Split('-').Select(n => n.Trim()).ToArray();
 
-    //                if (numbers.Length != 3)
-    //                {
-    //                    betLine.Error = "Combination must have exactly 3 numbers";
-    //                    currentEntry.Bets.Add(betLine);
-    //                    continue;
-    //                }
+        //                if (numbers.Length != 3)
+        //                {
+        //                    betLine.Error = "Combination must have exactly 3 numbers";
+        //                    currentEntry.Bets.Add(betLine);
+        //                    continue;
+        //                }
 
-    //                if (numbers.Any(n => !int.TryParse(n, out int num) || num < 1 || num > maxRange))
-    //                {
-    //                    betLine.Error = $"Numbers must be in range 1–{maxRange}";
-    //                    currentEntry.Bets.Add(betLine);
-    //                    continue;
-    //                }
+        //                if (numbers.Any(n => !int.TryParse(n, out int num) || num < 1 || num > maxRange))
+        //                {
+        //                    betLine.Error = $"Numbers must be in range 1–{maxRange}";
+        //                    currentEntry.Bets.Add(betLine);
+        //                    continue;
+        //                }
 
-    //                var amountStr = match.Groups["amount"].Value;
-    //                var type = match.Groups["type"].Value.ToUpper();
-    //                var typeOnly = match.Groups["typeOnly"].Value.ToUpper();
+        //                var amountStr = match.Groups["amount"].Value;
+        //                var type = match.Groups["type"].Value.ToUpper();
+        //                var typeOnly = match.Groups["typeOnly"].Value.ToUpper();
 
-    //                if (!string.IsNullOrEmpty(typeOnly))
-    //                {
-    //                    if (typeOnly != "FB")
-    //                    {
-    //                        betLine.Error = "Invalid bet type";
-    //                    }
-    //                    else
-    //                    {
-    //                        betLine.Amount = 0;
-    //                        betLine.Type = "FB";
-    //                        betLine.Combination = string.Join("-", numbers);
-    //                    }
-    //                }
-    //                else
-    //                {
-    //                    if (!int.TryParse(amountStr, out int amount) || !ValidAmounts.Contains(amount))
-    //                    {
-    //                        betLine.Error = "Invalid amount";
-    //                    }
-    //                    else if (!string.IsNullOrEmpty(type) && type != "RB")
-    //                    {
-    //                        betLine.Error = "Invalid bet type";
-    //                    }
-    //                    else
-    //                    {
-    //                        betLine.Amount = amount;
-    //                        betLine.Type = string.IsNullOrEmpty(type) ? "NORMAL" : type;
-    //                        betLine.Combination = string.Join("-", numbers);
-    //                    }
-    //                }
+        //                if (!string.IsNullOrEmpty(typeOnly))
+        //                {
+        //                    if (typeOnly != "FB")
+        //                    {
+        //                        betLine.Error = "Invalid bet type";
+        //                    }
+        //                    else
+        //                    {
+        //                        betLine.Amount = 0;
+        //                        betLine.Type = "FB";
+        //                        betLine.Combination = string.Join("-", numbers);
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    if (!int.TryParse(amountStr, out int amount) || !ValidAmounts.Contains(amount))
+        //                    {
+        //                        betLine.Error = "Invalid amount";
+        //                    }
+        //                    else if (!string.IsNullOrEmpty(type) && type != "RB")
+        //                    {
+        //                        betLine.Error = "Invalid bet type";
+        //                    }
+        //                    else
+        //                    {
+        //                        betLine.Amount = amount;
+        //                        betLine.Type = string.IsNullOrEmpty(type) ? "NORMAL" : type;
+        //                        betLine.Combination = string.Join("-", numbers);
+        //                    }
+        //                }
 
-    //                currentEntry.Bets.Add(betLine);
-    //            }
+        //                currentEntry.Bets.Add(betLine);
+        //            }
 
-    //            return batch;
-    //        }
-    //    }
-    //    #endregion
+        //            return batch;
+        //        }
+        //    }
+        //    #endregion
     }
 }
