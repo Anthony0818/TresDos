@@ -33,6 +33,6 @@ namespace TresDos.Core.Interfaces
             string type,
             string drawType,
             DateTime drawDate);
-        Task<tb_TwoD?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate);
+        Task<List<tb_TwoD>?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate);
       }
 }

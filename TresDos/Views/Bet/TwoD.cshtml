@@ -335,21 +335,19 @@
                 <div class="col-md-4 mb-3">
                     <div class="card">
                         <div class="card-header">
-                            2D - Bets (2PM)
+                            2D - Bets
                         </div>
-                        <div class="card-body">
-                            <h2>Employees</h2>
-
+                        <div class="card-body" style="overflow-y: auto;">
                             <table id="betsTable">
                                 <thead>
                                     <tr>
                                         <th>Bettor</th>
-                                        <th>FirstDigit</th>
-                                        <th>SecondDigit</th>
+                                        <th>1st #</th>
+                                        <th>2nd #</th>
                                         <th>Type</th>
                                         <th>Amount</th>
-                                        <th>DrawType</th>
-                                        <th>DrawDate</th>
+                                        <th>Draw Type</th>
+                                        <th>Draw Date</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -403,17 +401,22 @@
                             return {
                                 drawType: '@Model.DrawType'
                             };
+                        },
+                        dataSrc: function (json) {
+                            console.log("API Data:", json); // log entire response
+                            console.log("Bets:", json.data); // log just the data array
+                            return json.data;
                         }
                     },
                     columns: [
-                        { data: 'Bettor' },
-                        { data: 'FirstDigit' },
-                        { data: 'SecondDigit' },
-                        { data: 'Type' },
-                        { data: 'Amount' },
-                        { data: 'DrawType' },
+                        { data: 'bettor' },
+                        { data: 'firstDigit' },
+                        { data: 'secondDigit' },
+                        { data: 'type' },
+                        { data: 'amount' },
+                        { data: 'drawType' },
                         {
-                            data: 'DrawDate',
+                            data: 'drawDate',
                             render: function(data) {
                                 return new Date(data).toLocaleDateString();
                             }

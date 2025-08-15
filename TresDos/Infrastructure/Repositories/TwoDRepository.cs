@@ -96,12 +96,14 @@ namespace TresDos.Infrastructure.Repositories
             );
         }
 
-        public async Task<tb_TwoD?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate)
+        public async Task<List<tb_TwoD>?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate)
         {
-            return await _context.tb_TwoD
-                .FirstOrDefaultAsync(a => a.UserID == userId && 
+            var bets =  await _context.tb_TwoD
+                .Where(a => a.UserID == userId && 
                 a.DrawType == drawType &&
-                a.DrawDate == drawDate);
+                a.DrawDate.Date == drawDate.Date).ToListAsync();
+
+            return bets;
         }
     }
 }

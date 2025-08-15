@@ -43,13 +43,14 @@ public class TwoDApiController : ControllerBase
 
         return Ok(result);
     }
-    [HttpGet("GetBetsByUserIdDrawTypeDrawDate/{userId}/{drawType}/{drawDate}")]
+    //[HttpGet("GetBetsByUserIdDrawTypeDrawDate/{userId}/{drawType}/{drawDate}")]
+    [HttpGet("GetBetsByUserIdDrawTypeDrawDate")]
     public async Task<IActionResult> GetBetsByUserIdDrawTypeDrawDate(
          int userId,
          string drawType,
-         DateTime drawDate)
+         string drawDate)
     {
-        var query = new GetBetsByUserIdDrawTypeDrawDateQuery(userId, drawType, drawDate);
+        var query = new GetBetsByUserIdDrawTypeDrawDateQuery(userId, drawType, Convert.ToDateTime(drawDate));
         var twoBets = await _mediator.Send(query);
 
         if (twoBets == null)

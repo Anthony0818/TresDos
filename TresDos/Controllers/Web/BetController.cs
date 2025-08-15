@@ -524,6 +524,8 @@ namespace TresDos.Controllers.Web
         [HttpGet]
         public async Task<IActionResult> LoadTwoDBetsAsync(string drawType)
         {
+            drawType = "2D 5PM Draw";// For testing purposes, you can remove this line later
+
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
                 return Json(new { error = "Unauthorized" });
@@ -535,8 +537,10 @@ namespace TresDos.Controllers.Web
             int? userId = HttpContext.Session.GetInt32("UserId");
             var drawDate = _dateTimeHelper.GetPhilippineTime();
             var response = await client.GetAsync(
-                $"api/TwoDApi/GetBetsByUserIdDrawTypeDrawDate/{userId}/{Uri.EscapeDataString(drawType)}/{drawDate}"
-                );
+                $"api/TwoDApi/GetBetsByUserIdDrawTypeDrawDate?userid={userId}&drawType={Uri.EscapeDataString(drawType)}&drawDate={drawDate.ToString("MM/dd/yyyy")}"
+            );
+            //var response = await client.PostAsJsonAsync("api/TwoDApi/GetBetsByUserIdDrawTypeDrawDate", requestDto);
+
             if (response.IsSuccessStatusCode)
             {
                 var twoDBets = await response.Content.ReadFromJsonAsync<List<tb_TwoD>>();
