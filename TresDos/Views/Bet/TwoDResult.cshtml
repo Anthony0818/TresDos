@@ -1,0 +1,140 @@
+﻿@using TresDos.Application.DTOs
+@using TresDos.Application.ViewModel.BetModel
+@model IEnumerable<TwoDResultsViewModel>
+    
+    <!--<div class="container mt-4">-->
+    <div class="row">
+       
+        <div class="col-md-4 mb-3">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Submit Result
+                        </div>
+                        <div class="card-body">
+                            @if (Model != null)
+                            {
+                                    @foreach (var bet in Model)
+                                    {
+                                        <!-- MOBILE CARD LAYOUT -->
+                                        <div class="mobile-cards">
+                                            @{
+                                                
+                                                <div class="card mb-3">
+                                                        <div class="card-header">
+                                                            @bet.FirstDigit - @bet.SecondDigit = @bet.Amount@bet.Type
+                                                        </div>
+                                                        <div class="card-body">
+                                                      
+                                                            
+                                        <p class="mb-1"><strong>Bettor:</strong> @bet.Bettor</p>
+                                        <p class="mb-1"><strong>Combination:</strong>  @bet.FirstDigit - @bet.SecondDigit</p>
+                                                            <p class="mb-1"><strong>Amount:</strong> @bet.Amount</p>
+                                                            <p class="mb-1"><strong>Bet Type:</strong> @bet.Type</p>
+                                                            
+                                                        </div>
+                                                    </div>
+                                            }
+                                        </div>
+                                   }
+                                    <div class="bet-section">
+                                       
+                                        <!--INVALID BETS-->
+                                        @{
+                                            var invalidEntries = Model
+                                            .Select(e => new
+                                            {
+                                                InvalidBets = e.Bets.Where(b => !string.IsNullOrEmpty(b.Error)).ToList()
+                                            })
+                                            .Where(e => e.InvalidBets.Any())
+                                            .ToList();
+
+                                            var totalInvalidBets = invalidEntries.Sum(e => e.InvalidBets.Count);
+                                        }
+
+                                        <div class="card mb-3">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0 text-danger">❌ Invalid Bets (@totalInvalidBets)</h5>
+                                                <button type="button" class="btn btn-link p-0" onclick="toggleSection('invalidBetsSection', this)">Hide</button>
+                                            </div>
+                                            <div class="card-body" id="invalidBetsSection">
+                                                @foreach (var entry in invalidEntries)
+                                                {
+                                                    <p class="text-danger fw-bold mb-1">@($"{entry.BettorName}")</p>
+                                                    @foreach (var bet in entry.InvalidBets)
+                                                    {
+                                                        <p class="text-danger mb-1">@bet.RawInput (@bet.Error)</p>
+                                                    }
+                                                    <hr />
+                                                }
+                                            </div>
+                                            <div class="card-footer text-muted">
+                                                <button type="button" class="btn btn-danger me-2 mb-2" onclick="copyDivText('invalidBetsSection')">Copy Invalid Bets</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            
+
+                           
+                        </div>
+                    </div>
+        </div>
+        <div class="col-md-4 mb-3">
+        </div>
+        <div class="col-md-4 mb-3">
+        </div>
+    </div>
+    <!--</div>-->
+
+@section Scripts {
+    <script>
+        function copyDivText(sectionId) {
+            const div = document.getElementById(sectionId);
+
+            if (!div) {
+                alert("Div not found!");
+                return;
+            }
+
+            // Clone the element to avoid modifying the original
+            const cloned = div.cloneNode(true);
+
+            // Replace each <hr> with a span containing \n\n and remove the <hr>
+            const hrs = cloned.querySelectorAll('hr');
+            hrs.forEach(hr => {
+                const newlineSpan = document.createElement('span');
+                newlineSpan.innerText = '\n\n';
+                hr.parentNode.insertBefore(newlineSpan, hr.nextSibling);
+                hr.remove(); // remove the <hr>
+            });
+
+            // Extract raw text
+            const rawText = cloned.innerText || cloned.textContent || '';
+
+            // Normalize:
+            // - Remove leading spaces (left-align everything)
+            // - Preserve blank lines (from \n\n)
+            const normalized = rawText
+                .split('\n')
+                .map(line => line.trimStart()) // left-align
+                .join('\n');
+
+            navigator.clipboard.writeText(normalized)
+                //.then(() => alert("Copied as plain text!"))
+                .catch(err => console.error("Copy failed:", err));
+        }
+    </script>
+
+    <script>
+        function toggleSection(sectionId, btn) {
+            const section = document.getElementById(sectionId);
+            if (section.style.display === "none") {
+            section.style.display = "block";
+            btn.textContent = "Hide";
+            } else {
+            section.style.display = "none";
+            btn.textContent = "Show";
+            }
+        }
+    </script>
+}

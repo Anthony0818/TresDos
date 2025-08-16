@@ -443,28 +443,6 @@ namespace TresDos.Controllers.Web
 
                     if (response.IsSuccessStatusCode)
                     {
-                        //// Flatten all valid bets and create a dictionary for quick lookup
-                        //var validBetsById = batch.Entries
-                        //    .SelectMany(entry => entry.Bets.Where(bet => string.IsNullOrWhiteSpace(bet.Error)))
-                        //    .ToDictionary(bet => bet.id);
-
-                        //var result = await response.Content.ReadFromJsonAsync<List<BulkValidateTwoDEntriesProcessingResultDto>>();
-
-                        //if (result != null && result.Any())
-                        //{
-                        //    // Update bet errors based on the result
-                        //    foreach (var resultItem in result)
-                        //    {
-                        //        if (validBetsById.TryGetValue(resultItem.id, out var bet))
-                        //        {
-                        //            bet.Error = resultItem.Message;
-                        //        }
-                        //    }
-                        //}
-                        //// Save updated valid bets to ViewBag
-                        ////ViewBag.UpdatedValidBets = validBetsById.Values.ToList();
-                        //HttpContext.Session.SetString("UserFirstName", validBetsById.Values.ToList());
-
                         var result = await response.Content.ReadFromJsonAsync<List<BulkValidateTwoDEntriesProcessingResultDto>>();
                         if (result != null && result.Any())
                         {
@@ -476,7 +454,8 @@ namespace TresDos.Controllers.Web
                                     // Filter valid bet lines
                                     var validBets = entry.Bets.Where(bet => string.IsNullOrWhiteSpace(bet.Error)).ToList();
                                     var item = validBets.FirstOrDefault(o => o.id == resultItem.id); if (item != null)
-                                    { //Update bet error
+                                    { 
+                                        //Update bet error
                                         item.Error = resultItem.Message;
                                     }
                                 }
@@ -557,6 +536,7 @@ namespace TresDos.Controllers.Web
                         }
                     }
                     //}
+                    TempData["TwoDSubmitResult"] = updatedValidBets;
                 }
             }
             return View("TwoD", batch);
@@ -623,12 +603,11 @@ namespace TresDos.Controllers.Web
         //[HttpPost]
         //public async Task<JsonResult> LoadTwoDBetsAsync(string drawType)
         //[HttpGet("LoadTwoDBetsAsync/{drawType}")]
+        
         [Route("Bet/LoadTwoDBetsAsync")]
         [HttpGet]
         public async Task<IActionResult> LoadTwoDBetsAsync(string drawType)
         {
-            //drawType = "2D 5PM Draw";// For testing purposes, you can remove this line later
-
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
                 return Json(new { error = "Unauthorized" });
@@ -654,6 +633,19 @@ namespace TresDos.Controllers.Web
                 var error = await response.Content.ReadAsStringAsync();
                 return Json(new { error });
             }
+        }
+        
+        [Route("Bet/2d/Result")]
+        [HttpGet]
+        public async Task<IActionResult> TwoDResult()
+        {
+            var token = HttpContext.Session.GetString("JWToken");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login", "Auth");
+
+            var result = TempData["TwoDSubmitResult"] as List<TwoDResultViewModel>;
+
+            return View(result);
         }
         #endregion
 

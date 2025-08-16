@@ -21,17 +21,20 @@
     <Compile Remove="Application\DTOs\TokenResponse.cs" />
     <Compile Remove="Application\Feature\Users\QueriesHandlers\GetProductByIdHandler.cs" />
     <Compile Remove="Application\Feature\Users\Queries\GetProductByIdQuery.cs" />
+    <Compile Remove="Application\ViewModel\BetModel\TwoDResultViewModel.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="Views\Bet\ResultTwoD - Copy.cshtml" />
+    <Content Remove="Views\Bet\ResultBackup.cshtml" />
+    <Content Remove="Views\Bet\ResultThreeD.cshtml" />
+    <Content Remove="Views\Bet\ResultTwoD.cshtml" />
+    <Content Remove="Views\Bet\ThreeD.cshtml" />
+    <Content Remove="Views\Bet\TwoDResult.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include=".github\workflows\docker-publish.yml" />
-    <None Include="Views\Bet\ResultThreeD.cshtml" />
-    <None Include="Views\Bet\ResultTwoD - Copy.cshtml" />
-    <None Include="Views\Bet\ResultTwoD.cshtml" />
+    <None Include="Views\Bet\TwoDResult.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
