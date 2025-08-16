@@ -82,7 +82,7 @@
                                 <span asp-validation-for="Entry" class="text-danger"></span>
                             </div>
                         </div>
-                       
+
                         <!-- Validate Button -->
                         <div class="row">
                             <div class="col-12 text-center text-md-start">
@@ -183,15 +183,15 @@
                                                 <button type="button" class="btn btn-link p-0" onclick="toggleSection('validBetsSection', this)">Show</button>
                                             </div>
                                             <div class="card-body" id="validBetsSection" style="display: none">
-                                                    @foreach (var entry in validEntries)
+                                                @foreach (var entry in validEntries)
+                                                {
+                                                    <p class="text-success fw-bold mb-1">@($"{entry.BettorName}")</p>
+                                                    @foreach (var bet in entry.ValidBets)
                                                     {
-                                                        <p class="text-success fw-bold mb-1">@($"{entry.BettorName}")</p>
-                                                        @foreach (var bet in entry.ValidBets)
-                                                        {
-                                                            <p class="text-success mb-1">@bet.RawInput</p>
-                                                        }
-                                                        <hr />
+                                                        <p class="text-success mb-1">@bet.RawInput</p>
                                                     }
+                                                    <hr />
+                                                }
                                             </div>
                                             <div class="card-footer text-muted">
                                                 <button type="button" class="btn btn-success me-2 mb-2" onclick="copyDivText('validBetsSection')">Copy Valid Bets</button>
@@ -217,15 +217,15 @@
                                                 <button type="button" class="btn btn-link p-0" onclick="toggleSection('invalidBetsSection', this)">Hide</button>
                                             </div>
                                             <div class="card-body" id="invalidBetsSection">
-                                                    @foreach (var entry in invalidEntries)
+                                                @foreach (var entry in invalidEntries)
+                                                {
+                                                    <p class="text-danger fw-bold mb-1">@($"{entry.BettorName}")</p>
+                                                    @foreach (var bet in entry.InvalidBets)
                                                     {
-                                                        <p class="text-danger fw-bold mb-1">@($"{entry.BettorName}")</p>
-                                                        @foreach (var bet in entry.InvalidBets)
-                                                        {
-                                                            <p class="text-danger mb-1">@bet.RawInput (@bet.Error)</p>
-                                                        }
-                                                        <hr />
+                                                        <p class="text-danger mb-1">@bet.RawInput (@bet.Error)</p>
                                                     }
+                                                    <hr />
+                                                }
                                             </div>
                                             <div class="card-footer text-muted">
                                                 <button type="button" class="btn btn-danger me-2 mb-2" onclick="copyDivText('invalidBetsSection')">Copy Invalid Bets</button>
@@ -273,6 +273,23 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @if (totalValidBets > 0)// Show Submit Button only if there are valid bets
+                                    {
+                                        <div>
+                                            <!-- Other form inputs here -->
+
+                                            <label>
+                                                <input type="checkbox" id="agreeCheckbox" />
+                                                I agree to the terms and conditions
+                                            </label>
+                                        </div>
+
+                                        <div>
+                                            <button id="submitBets" type="submit" name="action" value="Submit" class="btn btn-primary w-100 w-md-auto">
+                                                Submit
+                                            </button>
+                                        </div>
+                                    }
                                 }
                             }
                            
@@ -423,6 +440,15 @@
                         }
                     ]
                 });
+            }
+        });
+    </script>
+    <script>
+        document.getElementById("submitBets").addEventListener("click", function (e) {
+            const checkbox = document.getElementById("agreeCheckbox");
+            if (!checkbox.checked) {
+                e.preventDefault(); // Prevent form submission
+                alert("You must agree to the terms and conditions before submitting.");
             }
         });
     </script>

@@ -371,22 +371,42 @@ namespace TresDos.Controllers.Web
                 }
 
 
-                var entries = new List<TwoDDto>();
+                var validEntries = new List<TwoDDto>();
 
-                // Loop through Entries
-                foreach (var entry in batch.Entries)
-                {
-                    // Filter valid bet lines
-                    var validBets = entry.Bets
+                //// Loop through Entries
+                //foreach (var entry in batch.Entries)
+                //{
+                //    // Filter valid bet lines
+                //    var validBets = entry.Bets
+                //        .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
+                //        .ToList();
+
+                //    if (!validBets.Any())
+                //        continue; // Skip entries with no valid bets
+
+                //    foreach (var bet in validBets)
+                //    {
+                //        var twoDDto = new TwoDDto
+                //        {
+                //            id = bet.id,
+                //            Bettor = entry.BettorName,
+                //            UserID = model.SelectedAgentID,
+                //            CreateDate = _dateTimeHelper.GetPhilippineTime(),
+                //            DrawType = batch.DrawType,
+                //            DrawDate = batch.DrawDate,
+                //            FirstDigit = bet.FirstDigit,
+                //            SecondDigit = bet.SecondDigit,
+                //            Type = bet.Type,
+                //            Amount = bet.Amount
+                //        };
+
+                //        entries.Add(twoDDto);
+                //    }
+                //}
+                var twoDDtos = batch.Entries
+                    .SelectMany(entry => entry.Bets
                         .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
-                        .ToList();
-
-                    if (!validBets.Any())
-                        continue; // Skip entries with no valid bets
-
-                    foreach (var bet in validBets)
-                    {
-                        var twoDDto = new TwoDDto
+                        .Select(bet => new TwoDDto
                         {
                             id = bet.id,
                             Bettor = entry.BettorName,
@@ -398,17 +418,14 @@ namespace TresDos.Controllers.Web
                             SecondDigit = bet.SecondDigit,
                             Type = bet.Type,
                             Amount = bet.Amount
-                        };
-
-                        entries.Add(twoDDto);
-                    }
-                }
+                        }));
+                validEntries.AddRange(twoDDtos);
 
                 var requestDto = new
                 {
                     requestDto = new BulkValidateTwoDEntriesRequestDto
                     {
-                        Entries = entries
+                        Entries = validEntries
                     }
                 };
 
@@ -422,27 +439,49 @@ namespace TresDos.Controllers.Web
 
                     if (response.IsSuccessStatusCode)
                     {
+                        //var result = await response.Content.ReadFromJsonAsync<List<BulkValidateTwoDEntriesProcessingResultDto>>();
+                        //if (result != null && result.Any())
+                        //{
+                        //    foreach (var resultItem in result)
+                        //    {
+                        //        // Loop through Entries
+                        //        foreach (var entry in batch.Entries)
+                        //        {
+                        //            // Filter valid bet lines
+                        //            var validBets = entry.Bets
+                        //                .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
+                        //                .ToList();
+                        //            var item = validBets.FirstOrDefault(o => o.id == resultItem.id);
+
+                        //            if (item != null)
+                        //            {
+                        //                //Update bet error
+                        //                item.Error = resultItem.Message;
+                        //            }
+                        //        }
+                        //    }
+                        //}
+
                         var result = await response.Content.ReadFromJsonAsync<List<BulkValidateTwoDEntriesProcessingResultDto>>();
+
                         if (result != null && result.Any())
                         {
+                            // Flatten all valid bets and create a dictionary for quick lookup
+                            var validBetsById = batch.Entries
+                                .SelectMany(entry => entry.Bets.Where(bet => string.IsNullOrWhiteSpace(bet.Error)))
+                                .ToDictionary(bet => bet.id);
+
+                            // Update bet errors based on the result
                             foreach (var resultItem in result)
                             {
-                                // Loop through Entries
-                                foreach (var entry in batch.Entries)
+                                if (validBetsById.TryGetValue(resultItem.id, out var bet))
                                 {
-                                    // Filter valid bet lines
-                                    var validBets = entry.Bets
-                                        .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
-                                        .ToList();
-                                    var item = validBets.FirstOrDefault(o => o.id == resultItem.id);
-
-                                    if (item != null)
-                                    {
-                                        //Update bet error
-                                        item.Error = resultItem.Message;
-                                    }
+                                    bet.Error = resultItem.Message;
                                 }
                             }
+
+                            // Save updated valid bets to ViewBag
+                            ViewBag.UpdatedValidBets = validBetsById.Values.ToList();
                         }
                     }
                     else
@@ -453,8 +492,36 @@ namespace TresDos.Controllers.Web
                 }
             }
             else //Submitting of Bets
-            { 
+            {
+                var validEntries = new List<TwoDDto>();
+                // Get updated valid bets from ViewBag if available
+                var updatedValidBets = ViewBag.UpdatedValidBets as List<Entry>; // Replace Bet with your actual type
+                if (updatedValidBets != null)
+                {
+                    var twoDDtos = updatedValidBets?
+                        .SelectMany(entry => entry.Bets
+                            .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
+                            .Select(bet => new TwoDDto
+                            {
+                                id = bet.id,
+                                Bettor = entry.BettorName,
+                                UserID = model.SelectedAgentID,
+                                CreateDate = _dateTimeHelper.GetPhilippineTime(),
+                                DrawType = batch.DrawType,
+                                DrawDate = batch.DrawDate,
+                                FirstDigit = bet.FirstDigit,
+                                SecondDigit = bet.SecondDigit,
+                                Type = bet.Type,
+                                Amount = bet.Amount
+                            }));
 
+                    if (twoDDtos != null)
+                    {
+                        validEntries.AddRange(twoDDtos);
+
+                        //TODO: Save validEntries to database
+                    }
+                }
             }
             return View("TwoD", batch);
         }
