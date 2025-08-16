@@ -26,7 +26,7 @@ namespace TresDos.Application.Feature.TwoD.Handlers
 
             var runningTotals = new Dictionary<string, decimal>();
 
-            foreach (var dto in request.RequestDto.Entries)
+            foreach (var dto in request.requestDto.Entries)
             {
                 string validationKey = GetValidationKey(dto);
 

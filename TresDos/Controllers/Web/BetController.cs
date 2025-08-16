@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
@@ -468,7 +469,7 @@ namespace TresDos.Controllers.Web
                         if (result != null && result.Any())
                         {
                             foreach (var resultItem in result)
-                            { 
+                            {
                                 // Loop through Entries
                                 foreach (var entry in batch.Entries)
                                 {
@@ -488,64 +489,74 @@ namespace TresDos.Controllers.Web
                         ViewBag.Error = error;
                     }
                 }
+                // Serialize and store in session
+                HttpContext.Session.SetString("UpdatedValidBets", JsonConvert.SerializeObject(validEntries));
             }
             else //Submitting of Bets
             {
-                var validEntries = new List<TwoDDto>();
+                //var validEntries = new List<TwoDDto>();
                 // Get updated valid bets from ViewBag if available
-                var updatedValidBets = ViewBag.UpdatedValidBets as List<Entry>; // Replace Bet with your actual type
+                //var updatedValidBets = ViewBag.UpdatedValidBets as List<Entry>; // Replace Bet with your actual type
+                var betsJson = HttpContext.Session.GetString("UpdatedValidBets");
+
+                List<TwoDDto>? updatedValidBets = string.IsNullOrEmpty(betsJson)
+                    ? new List<TwoDDto>()
+                    : JsonConvert.DeserializeObject<List<TwoDDto>>(betsJson);
+
                 if (updatedValidBets != null)
                 {
-                    var twoDDtos = updatedValidBets?
-                        .SelectMany(entry => entry.Bets
-                            .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
-                            .Select(bet => new TwoDDto
-                            {
-                                id = bet.id,
-                                Bettor = entry.BettorName,
-                                UserID = model.SelectedAgentID,
-                                CreateDate = _dateTimeHelper.GetPhilippineTime(),
-                                DrawType = batch.DrawType,
-                                DrawDate = batch.DrawDate,
-                                FirstDigit = bet.FirstDigit,
-                                SecondDigit = bet.SecondDigit,
-                                Type = bet.Type,
-                                Amount = bet.Amount
-                            }));
+                    //var twoDDtos = updatedValidBets
+                    //        .Select(bet => new TwoDDto
+                    //        {
+                    //            id = bet.id,
+                    //            Bettor = bet.Bettor,
+                    //            UserID = model.SelectedAgentID,
+                    //            CreateDate = _dateTimeHelper.GetPhilippineTime(),
+                    //            DrawType = batch.DrawType,
+                    //            DrawDate = batch.DrawDate,
+                    //            FirstDigit = bet.FirstDigit,
+                    //            SecondDigit = bet.SecondDigit,
+                    //            Type = bet.Type,
+                    //            Amount = bet.Amount
+                    //        }));
 
-                    if (twoDDtos != null)
+                    //if (twoDDtos != null)
+                    //{
+                    //    validEntries.AddRange(twoDDtos);
+
+                    var requestDto = new
                     {
-                        validEntries.AddRange(twoDDtos);
-
-                        var requestDto = new
+                        requestDto = new BulkValidateTwoDEntriesRequestDto
                         {
-                            requestDto = new BulkValidateTwoDEntriesRequestDto
-                            {
-                                Entries = validEntries
-                            }
-                        };
+                            Entries = updatedValidBets
+                        }
+                    };
 
-                        //TODO: Save validEntries to database
-                        if (!requestDto.Equals(null) && requestDto.requestDto.Entries.Count > 0)
+                    //TODO: Save validEntries to database
+                    if (!requestDto.Equals(null) && requestDto.requestDto.Entries.Count > 0)
+                    {
+                        var client = _clientFactory.CreateClient("ApiClient");
+                        client.DefaultRequestHeaders.Authorization =
+                            new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("JWToken"));
+
+                        var response = await client.PostAsJsonAsync("api/TwoDApi/BulkInsertTwoD", requestDto);
+
+                        if (response.IsSuccessStatusCode)
                         {
-                            var client = _clientFactory.CreateClient("ApiClient");
-                            client.DefaultRequestHeaders.Authorization =
-                                new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("JWToken"));
+                            var result = await response.Content.ReadFromJsonAsync<BulkInsertTwoDEntriesResponseDto>();
 
-                            var response = await client.PostAsJsonAsync("api/TwoDApi/BulkInsertTwoDCommand", requestDto);
+                            if (result?.EntriesInserted != null)
+                                ViewBag.EntriesInserted = result.EntriesInserted;
 
-                            if (response.IsSuccessStatusCode)
-                            {
-                                var result = await response.Content.ReadFromJsonAsync<BulkInsertTwoDEntriesResponseDto>();
-                                
-                                if(result?.EntriesInserted != null)
-                                    ViewBag.EntriesInserted = result.EntriesInserted;
-
-                                if (result?.EntriesWithError != null)
-                                    ViewBag.EntriesWithError = result.EntriesWithError;
-                            }
+                            if (result?.EntriesWithError != null)
+                                ViewBag.EntriesWithError = result.EntriesWithError;
+                        }
+                        else
+                        {
+                            var json = await response.Content.ReadAsStringAsync();
                         }
                     }
+                    //}
                 }
             }
             return View("TwoD", batch);

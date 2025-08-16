@@ -4,6 +4,6 @@ using TresDos.Core.Entities;
 namespace TresDos.Application.Feature.TwoD.Commands
 {
    public record BulkInsertTwoDCommand(
-         BulkInsertTwoDEntriesRequestDto RequestDto
+         BulkInsertTwoDEntriesRequestDto requestDto
        ) : IRequest<(List<tb_TwoD>, List<BulkInsertTwoDEntriesProcessingResultDto>)>;
 }
