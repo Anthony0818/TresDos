@@ -2,14 +2,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using TresDos.Application.DTOs.BetDto;
 using TresDos.Application.DTOs.ProductDto;
@@ -270,11 +269,12 @@ namespace TresDos.Controllers.Web
                 }
             }
 
-            // Find the schedule with the closest DrawTime to now
+            // Get the next available draw (i.e., CutOffTime is still in the future)
             var currentDraw = drawSettings
-                .OrderBy(s => Math.Abs((s.DrawTime - now.TimeOfDay).TotalSeconds))
+                .Where(d => now.TimeOfDay < d.CutOffTime)
+                .OrderBy(d => d.CutOffTime)
                 .FirstOrDefault();
-            
+
             batch.DrawDate = now.Date;
 
             batch.DrawTime = currentDraw?.DrawTime ?? now.TimeOfDay;
@@ -442,36 +442,45 @@ namespace TresDos.Controllers.Web
 
                     if (response.IsSuccessStatusCode)
                     {
-                        // Flatten all valid bets and create a dictionary for quick lookup
-                        var validBetsById = batch.Entries
-                            .SelectMany(entry => entry.Bets.Where(bet => string.IsNullOrWhiteSpace(bet.Error)))
-                            .ToDictionary(bet => bet.id);
+                        //// Flatten all valid bets and create a dictionary for quick lookup
+                        //var validBetsById = batch.Entries
+                        //    .SelectMany(entry => entry.Bets.Where(bet => string.IsNullOrWhiteSpace(bet.Error)))
+                        //    .ToDictionary(bet => bet.id);
+
+                        //var result = await response.Content.ReadFromJsonAsync<List<BulkValidateTwoDEntriesProcessingResultDto>>();
+
+                        //if (result != null && result.Any())
+                        //{
+                        //    // Update bet errors based on the result
+                        //    foreach (var resultItem in result)
+                        //    {
+                        //        if (validBetsById.TryGetValue(resultItem.id, out var bet))
+                        //        {
+                        //            bet.Error = resultItem.Message;
+                        //        }
+                        //    }
+                        //}
+                        //// Save updated valid bets to ViewBag
+                        ////ViewBag.UpdatedValidBets = validBetsById.Values.ToList();
+                        //HttpContext.Session.SetString("UserFirstName", validBetsById.Values.ToList());
 
                         var result = await response.Content.ReadFromJsonAsync<List<BulkValidateTwoDEntriesProcessingResultDto>>();
-
                         if (result != null && result.Any())
                         {
-                            // Update bet errors based on the result
                             foreach (var resultItem in result)
-                            {
-                                if (validBetsById.TryGetValue(resultItem.id, out var bet))
+                            { 
+                                // Loop through Entries
+                                foreach (var entry in batch.Entries)
                                 {
-                                    bet.Error = resultItem.Message;
+                                    // Filter valid bet lines
+                                    var validBets = entry.Bets.Where(bet => string.IsNullOrWhiteSpace(bet.Error)).ToList();
+                                    var item = validBets.FirstOrDefault(o => o.id == resultItem.id); if (item != null)
+                                    { //Update bet error
+                                        item.Error = resultItem.Message;
+                                    }
                                 }
                             }
                         }
-                        // Save updated valid bets to ViewBag
-                        //ViewBag.UpdatedValidBets = validBetsById.Values.ToList();
-                        var validBets = validBetsById.Values.ToList();
-
-                        // Optional: add JsonSerializerOptions for better compatibility (e.g., case-insensitive)
-                        var options = new JsonSerializerOptions
-                        {
-                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                            WriteIndented = false
-                        };
-
-                        HttpContext.Session.SetString("UpdatedValidBets", System.Text.Json.JsonSerializer.Serialize(validBets, options));
                     }
                     else
                     {
@@ -484,49 +493,25 @@ namespace TresDos.Controllers.Web
             {
                 var validEntries = new List<TwoDDto>();
                 // Get updated valid bets from ViewBag if available
-
-                var validBetsJson = HttpContext.Session.GetString("UpdatedValidBets");
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = false
-                };
-                List<BetLine>? validBets = string.IsNullOrEmpty(validBetsJson)
-                ? new List<BetLine>()
-                    : System.Text.Json.JsonSerializer.Deserialize<List<BetLine>>(validBetsJson, options);
-
-                var updatedValidBets = validBets; // Replace Bet with your actual type
+                var updatedValidBets = ViewBag.UpdatedValidBets as List<Entry>; // Replace Bet with your actual type
                 if (updatedValidBets != null)
                 {
-                    //var twoDDtos = updatedValidBets?
-                    //    //.SelectMany(entry => entry.Bets
-                    //        .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
-                    //        .Select(bet => new TwoDDto
-                    //        {
-                    //            id = bet.id,
-                    //            Bettor = entr,
-                    //            UserID = model.SelectedAgentID,
-                    //            CreateDate = _dateTimeHelper.GetPhilippineTime(),
-                    //            DrawType = batch.DrawType,
-                    //            DrawDate = batch.DrawDate,
-                    //            FirstDigit = bet.FirstDigit,
-                    //            SecondDigit = bet.SecondDigit,
-                    //            Type = bet.Type,
-                    //            Amount = bet.Amount
-                    //        }));
-                    var twoDDtos = updatedValidBets.Select(bet => new TwoDDto
-                    {
-                        id = bet.id,
-                        Bettor = entr,
-                        UserID = model.SelectedAgentID,
-                        CreateDate = _dateTimeHelper.GetPhilippineTime(),
-                        DrawType = batch.DrawType,
-                        DrawDate = batch.DrawDate,
-                        FirstDigit = bet.FirstDigit,
-                        SecondDigit = bet.SecondDigit,
-                        Type = bet.Type,
-                        Amount = bet.Amount
-                    });
+                    var twoDDtos = updatedValidBets?
+                        .SelectMany(entry => entry.Bets
+                            .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
+                            .Select(bet => new TwoDDto
+                            {
+                                id = bet.id,
+                                Bettor = entry.BettorName,
+                                UserID = model.SelectedAgentID,
+                                CreateDate = _dateTimeHelper.GetPhilippineTime(),
+                                DrawType = batch.DrawType,
+                                DrawDate = batch.DrawDate,
+                                FirstDigit = bet.FirstDigit,
+                                SecondDigit = bet.SecondDigit,
+                                Type = bet.Type,
+                                Amount = bet.Amount
+                            }));
 
                     if (twoDDtos != null)
                     {

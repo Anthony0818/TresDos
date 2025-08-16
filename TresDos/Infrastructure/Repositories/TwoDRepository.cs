@@ -48,26 +48,29 @@ namespace TresDos.Infrastructure.Repositories
             DateTime drawDate)
         {
             // This method combines the logic for both RAMBLE and STRAIGHT types
+            decimal result;
+
             if (typeCode == "R")
             {
-                return await _context.tb_TwoD
+                 result = await _context.tb_TwoD
                     .Where(e => e.Type == typeCode &&
                                 e.DrawType == drawType &&
-                                e.DrawDate == drawDate &&
+                                e.DrawDate.Date == drawDate.Date &&
                                ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
                                 (e.FirstDigit == secondDigit && e.SecondDigit == firstDigit)))
                     .SumAsync(e => e.Amount);
             }
             else
             {
-                return await _context.tb_TwoD
+                result= await _context.tb_TwoD
                         .Where(e => e.Type == typeCode &&
                                     e.DrawType == drawType &&
-                                    e.DrawDate == drawDate &&
+                                    e.DrawDate.Date == drawDate.Date &&
                                    ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
                                     (e.FirstDigit == secondDigit && e.SecondDigit == secondDigit)))
                         .SumAsync(e => e.Amount);
             }
+            return result;
         }
 
         public async Task AddEntriesAsync(IEnumerable<tb_TwoD> entries)
@@ -92,7 +95,7 @@ namespace TresDos.Infrastructure.Repositories
                 e.Amount == amount &&
                 e.Type == type &&
                 e.DrawType == drawType &&
-                e.DrawDate == drawDate
+                e.DrawDate.Date == drawDate.Date
             );
         }
 
