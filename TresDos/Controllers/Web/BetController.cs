@@ -439,29 +439,6 @@ namespace TresDos.Controllers.Web
 
                     if (response.IsSuccessStatusCode)
                     {
-                        //var result = await response.Content.ReadFromJsonAsync<List<BulkValidateTwoDEntriesProcessingResultDto>>();
-                        //if (result != null && result.Any())
-                        //{
-                        //    foreach (var resultItem in result)
-                        //    {
-                        //        // Loop through Entries
-                        //        foreach (var entry in batch.Entries)
-                        //        {
-                        //            // Filter valid bet lines
-                        //            var validBets = entry.Bets
-                        //                .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
-                        //                .ToList();
-                        //            var item = validBets.FirstOrDefault(o => o.id == resultItem.id);
-
-                        //            if (item != null)
-                        //            {
-                        //                //Update bet error
-                        //                item.Error = resultItem.Message;
-                        //            }
-                        //        }
-                        //    }
-                        //}
-
                         var result = await response.Content.ReadFromJsonAsync<List<BulkValidateTwoDEntriesProcessingResultDto>>();
 
                         if (result != null && result.Any())
@@ -519,7 +496,34 @@ namespace TresDos.Controllers.Web
                     {
                         validEntries.AddRange(twoDDtos);
 
+                        var requestDto = new
+                        {
+                            requestDto = new BulkValidateTwoDEntriesRequestDto
+                            {
+                                Entries = validEntries
+                            }
+                        };
+
                         //TODO: Save validEntries to database
+                        if (!requestDto.Equals(null) && requestDto.requestDto.Entries.Count > 0)
+                        {
+                            var client = _clientFactory.CreateClient("ApiClient");
+                            client.DefaultRequestHeaders.Authorization =
+                                new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("JWToken"));
+
+                            var response = await client.PostAsJsonAsync("api/TwoDApi/BulkInsertTwoDCommand", requestDto);
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var result = await response.Content.ReadFromJsonAsync<BulkInsertTwoDEntriesResponseDto>();
+                                
+                                if(result?.EntriesInserted != null)
+                                    ViewBag.EntriesInserted = result.EntriesInserted;
+
+                                if (result?.EntriesWithError != null)
+                                    ViewBag.EntriesWithError = result.EntriesWithError;
+                            }
+                        }
                     }
                 }
             }

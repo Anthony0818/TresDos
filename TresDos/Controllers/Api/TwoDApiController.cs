@@ -7,6 +7,7 @@ using TresDos.Application.Feature.Products.Commands;
 using TresDos.Application.Feature.Products.Queries;
 using TresDos.Application.Feature.TwoD.Commands;
 using TresDos.Application.Feature.TwoD.Queries;
+using TresDos.Core.Entities;
 [ApiController]
 [Route("api/[controller]")]
 public class TwoDApiController : ControllerBase
@@ -19,22 +20,37 @@ public class TwoDApiController : ControllerBase
     {
         var result = await _mediator.Send(command);
 
-        return Ok(new
+        var response = new BulkInsertTwoDEntriesResponseDto
         {
-            InsertedEntries = result.Item1,
-            ProcessingResults = result.Item2.Select(r => new
-            {
-                r.id,
-                r.Bettor,
-                r.FirstDigit,
-                r.SecondDigit,
-                r.Type,
-                r.Amount,
-                r.Message,
-                r.IsInserted,
-                r.AvailableBalance
-            })
-        });
+            //EntriesInserted = result.Item1.Select(r => new List<tb_TwoD>
+            //{
+            //    r.id,
+            //    r.Bettor,
+            //    r.FirstDigit,
+            //    r.SecondDigit,
+            //    r.Type,
+            //    r.Amount,
+            //    r.DrawType,
+            //    r.DrawDate,
+            //    r.CreateDate
+            //}),
+            //EntriesWithError = result.Item2.Select(r => new List<BulkInsertTwoDEntriesProcessingResultDto>
+            //{
+            //    r.id,
+            //    r.Bettor,
+            //    r.FirstDigit,
+            //    r.SecondDigit,
+            //    r.Type,
+            //    r.Amount,
+            //    r.Message,
+            //    r.IsInserted,
+            //    r.AvailableBalance
+            //})
+            EntriesInserted = result.Item1.ToList(),
+            EntriesWithError = result.Item2.ToList()
+        };
+
+        return Ok(response);
     }
     [HttpPost("BulkValidateTwoD")]
     public async Task<IActionResult> BulkValidateTwoD([FromBody] BulkValidateTwoDCommand command)
