@@ -29,7 +29,6 @@
     <Content Remove="Views\Bet\ResultThreeD.cshtml" />
     <Content Remove="Views\Bet\ResultTwoD.cshtml" />
     <Content Remove="Views\Bet\ThreeD.cshtml" />
-    <Content Remove="Views\Bet\TwoDResult.cshtml" />
   </ItemGroup>
 
   <ItemGroup>

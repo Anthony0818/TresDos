@@ -7,7 +7,7 @@ using TresDos.Application.DTOs.BetDto;
 
 namespace TresDos.Application.Feature.TwoD.Handlers
 {
-    public class BulkInsertTwoDHandler : IRequestHandler<BulkInsertTwoDCommand, (List<tb_TwoD>, List<BulkInsertTwoDEntriesProcessingResultDto>)>
+    public class BulkInsertTwoDHandler : IRequestHandler<BulkInsertTwoDCommand, (List<tb_TwoD>, List<BulkInsertTwoDEntriesResultDto>)>
     {
         private readonly ITwoDRepository _repo;
         private readonly IConfiguration _configuration;
@@ -17,10 +17,10 @@ namespace TresDos.Application.Feature.TwoD.Handlers
             _configuration = configuration;
         }
 
-        public async Task<(List<tb_TwoD>, List<BulkInsertTwoDEntriesProcessingResultDto>)> Handle(BulkInsertTwoDCommand request, CancellationToken cancellationToken)
+        public async Task<(List<tb_TwoD>, List<BulkInsertTwoDEntriesResultDto>)> Handle(BulkInsertTwoDCommand request, CancellationToken cancellationToken)
         {
             var inserted = new List<tb_TwoD>();
-            var results = new List<BulkInsertTwoDEntriesProcessingResultDto>();
+            var results = new List<BulkInsertTwoDEntriesResultDto>();
 
             decimal maxLimitPerCombo = _configuration.GetValue<decimal>("BetSettings:TwoDMaxBet");
 
@@ -82,7 +82,7 @@ namespace TresDos.Application.Feature.TwoD.Handlers
                     inserted.Add(entry);
                     runningTotals[validationKey] += dto.Amount;
 
-                    results.Add(new BulkInsertTwoDEntriesProcessingResultDto
+                    results.Add(new BulkInsertTwoDEntriesResultDto
                     {
                         id = dto.id,
                         Bettor = dto.Bettor,
@@ -114,8 +114,8 @@ namespace TresDos.Application.Feature.TwoD.Handlers
         private static string GetValidationKey(TwoDDto dto) =>
             $"{dto.FirstDigit}_{dto.SecondDigit}_{dto.Type}";
 
-        private static BulkInsertTwoDEntriesProcessingResultDto Failed(TwoDDto dto, string message, decimal balance) =>
-            new BulkInsertTwoDEntriesProcessingResultDto
+        private static BulkInsertTwoDEntriesResultDto Failed(TwoDDto dto, string message, decimal balance) =>
+            new BulkInsertTwoDEntriesResultDto
             {
                 id = dto.id,
                 Bettor = dto.Bettor,

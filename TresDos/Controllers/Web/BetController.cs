@@ -313,6 +313,8 @@ namespace TresDos.Controllers.Web
 
             if (action == "Validate")
             {
+                HttpContext.Session.SetString("UpdatedValidBets", string.Empty);
+
                 var lines = model.Entry.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
                 Entry currentEntry = null;
@@ -443,7 +445,7 @@ namespace TresDos.Controllers.Web
 
                     if (response.IsSuccessStatusCode)
                     {
-                        var result = await response.Content.ReadFromJsonAsync<List<BulkValidateTwoDEntriesProcessingResultDto>>();
+                        var result = await response.Content.ReadFromJsonAsync<List<BulkValidateTwoDEntriesResultDto>>();
                         if (result != null && result.Any())
                         {
                             foreach (var resultItem in result)
@@ -473,6 +475,7 @@ namespace TresDos.Controllers.Web
             }
             else //Submitting of Bets
             {
+                HttpContext.Session.SetString("TwoDSubmitResult", string.Empty);
                 //var validEntries = new List<TwoDDto>();
                 // Get updated valid bets from ViewBag if available
                 //var updatedValidBets = ViewBag.UpdatedValidBets as List<Entry>; // Replace Bet with your actual type
@@ -484,25 +487,6 @@ namespace TresDos.Controllers.Web
 
                 if (updatedValidBets != null)
                 {
-                    //var twoDDtos = updatedValidBets
-                    //        .Select(bet => new TwoDDto
-                    //        {
-                    //            id = bet.id,
-                    //            Bettor = bet.Bettor,
-                    //            UserID = model.SelectedAgentID,
-                    //            CreateDate = _dateTimeHelper.GetPhilippineTime(),
-                    //            DrawType = batch.DrawType,
-                    //            DrawDate = batch.DrawDate,
-                    //            FirstDigit = bet.FirstDigit,
-                    //            SecondDigit = bet.SecondDigit,
-                    //            Type = bet.Type,
-                    //            Amount = bet.Amount
-                    //        }));
-
-                    //if (twoDDtos != null)
-                    //{
-                    //    validEntries.AddRange(twoDDtos);
-
                     var requestDto = new
                     {
                         requestDto = new BulkValidateTwoDEntriesRequestDto
@@ -524,19 +508,26 @@ namespace TresDos.Controllers.Web
                         {
                             var result = await response.Content.ReadFromJsonAsync<BulkInsertTwoDEntriesResponseDto>();
 
-                            if (result?.EntriesInserted != null)
-                                ViewBag.EntriesInserted = result.EntriesInserted;
+                            //if (result?.EntriesInserted != null)
+                            //    ViewBag.EntriesInserted = result.EntriesInserted;
 
-                            if (result?.EntriesWithError != null)
-                                ViewBag.EntriesWithError = result.EntriesWithError;
+                            //if (result?.EntriesWithError != null)
+                            //    ViewBag.EntriesWithError = result.EntriesWithError;
+
+                            if (result?.EntriesResults != null)
+                            {
+                                // Serialize and store in session
+                                HttpContext.Session.SetString("TwoDSubmitResult", JsonConvert.SerializeObject(result?.EntriesResults));
+                                //return RedirectToAction("TwoDResult");
+                                //return Redirect("/Bet/2dResult");
+                                return RedirectToAction("2dResult", "Bet");
+                            }
                         }
                         else
                         {
                             var json = await response.Content.ReadAsStringAsync();
                         }
                     }
-                    //}
-                    TempData["TwoDSubmitResult"] = updatedValidBets;
                 }
             }
             return View("TwoD", batch);
@@ -634,18 +625,45 @@ namespace TresDos.Controllers.Web
                 return Json(new { error });
             }
         }
-        
-        [Route("Bet/2d/Result")]
-        [HttpGet]
-        public async Task<IActionResult> TwoDResult()
+
+        [Route("Bet/2dResult")]
+        public IActionResult TwoDResult()
         {
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
                 return RedirectToAction("Login", "Auth");
 
-            var result = TempData["TwoDSubmitResult"] as List<TwoDResultViewModel>;
+            //var bulkInsertResults = TempData["TwoDSubmitResult"] as List<BulkInsertTwoDEntriesResultDto>;
+            var betsJson = HttpContext.Session.GetString("TwoDSubmitResult");
 
-            return View(result);
+            List<BulkInsertTwoDEntriesResultDto>? bulkInsertResults = string.IsNullOrEmpty(betsJson)
+                ? new List<BulkInsertTwoDEntriesResultDto>()
+                : JsonConvert.DeserializeObject<List<BulkInsertTwoDEntriesResultDto>>(betsJson);
+
+            if (bulkInsertResults == null || !bulkInsertResults.Any())
+            {
+                return RedirectToAction("TwoD");
+            }
+            List<TwoDResultsViewModel> viewModelList = bulkInsertResults
+                .Select(dto => new TwoDResultsViewModel
+                {
+                    Bettor = dto.Bettor,
+                    UserID = dto.UserID,
+                    CreateDate = dto.CreateDate,
+                    DrawType = dto.DrawType,
+                    DrawDate = dto.DrawDate,
+                    id = dto.id,
+                    FirstDigit = dto.FirstDigit,
+                    SecondDigit = dto.SecondDigit,
+                    Type = dto.Type,
+                    Amount = dto.Amount,
+                    IsInserted = dto.IsInserted,
+                    Message = dto.Message,
+                    AvailableBalance = dto.AvailableBalance
+                })
+                .ToList();
+
+            return View(viewModelList);
         }
         #endregion
 

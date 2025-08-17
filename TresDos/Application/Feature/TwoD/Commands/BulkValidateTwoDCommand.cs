@@ -4,5 +4,5 @@ namespace TresDos.Application.Feature.TwoD.Commands
 {
    public record BulkValidateTwoDCommand(
          BulkValidateTwoDEntriesRequestDto requestDto
-       ) : IRequest<List<BulkValidateTwoDEntriesProcessingResultDto>>;
+       ) : IRequest<List<BulkValidateTwoDEntriesResultDto>>;
 }

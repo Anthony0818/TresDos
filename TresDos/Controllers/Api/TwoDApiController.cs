@@ -47,7 +47,7 @@ public class TwoDApiController : ControllerBase
             //    r.AvailableBalance
             //})
             EntriesInserted = result.Item1.ToList(),
-            EntriesWithError = result.Item2.ToList()
+            EntriesResults = result.Item2.ToList()
         };
 
         return Ok(response);

@@ -7,7 +7,7 @@ using TresDos.Application.DTOs.BetDto;
 
 namespace TresDos.Application.Feature.TwoD.Handlers
 {
-    public class BulkValidateTwoDHandler : IRequestHandler<BulkValidateTwoDCommand, List<BulkValidateTwoDEntriesProcessingResultDto>>
+    public class BulkValidateTwoDHandler : IRequestHandler<BulkValidateTwoDCommand, List<BulkValidateTwoDEntriesResultDto>>
     {
         private readonly ITwoDRepository _repo;
         private readonly IConfiguration _configuration;
@@ -17,9 +17,9 @@ namespace TresDos.Application.Feature.TwoD.Handlers
             _configuration = configuration;
         }
 
-        public async Task<List<BulkValidateTwoDEntriesProcessingResultDto>> Handle(BulkValidateTwoDCommand request, CancellationToken cancellationToken)
+        public async Task<List<BulkValidateTwoDEntriesResultDto>> Handle(BulkValidateTwoDCommand request, CancellationToken cancellationToken)
         {
-            var results = new List<BulkValidateTwoDEntriesProcessingResultDto>();
+            var results = new List<BulkValidateTwoDEntriesResultDto>();
 
             decimal maxLimitPerCombo = _configuration.GetValue<decimal>("BetSettings:TwoDMaxBet");
 
@@ -72,8 +72,8 @@ namespace TresDos.Application.Feature.TwoD.Handlers
         private static string GetValidationKey(TwoDDto dto) =>
             $"{dto.FirstDigit}_{dto.SecondDigit}_{dto.Type}";
 
-        private static BulkValidateTwoDEntriesProcessingResultDto Failed(TwoDDto dto, string message, decimal balance) =>
-            new BulkValidateTwoDEntriesProcessingResultDto
+        private static BulkValidateTwoDEntriesResultDto Failed(TwoDDto dto, string message, decimal balance) =>
+            new BulkValidateTwoDEntriesResultDto
             {
                 id = dto.id,
                 Bettor = dto.Bettor,

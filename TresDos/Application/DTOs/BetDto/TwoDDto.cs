@@ -18,7 +18,7 @@
     {
         public List<TwoDDto> Entries { get; set; }
     }
-    public class BulkInsertTwoDEntriesProcessingResultDto : TwoDDto
+    public class BulkInsertTwoDEntriesResultDto : TwoDDto
     {
         public bool IsInserted { get; set; }
         public string Message { get; set; }
@@ -28,7 +28,7 @@
     {
         public List<TwoDDto> Entries { get; set; }
     }
-    public class BulkValidateTwoDEntriesProcessingResultDto : TwoDDto
+    public class BulkValidateTwoDEntriesResultDto : TwoDDto
     {
         public bool IsInserted { get; set; }
         public string Message { get; set; }
