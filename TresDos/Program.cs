@@ -48,10 +48,12 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITwoDRepository, TwoDRepository>();
 builder.Services.AddScoped<IDrawSetingsRepository, DrawSetingsRepository>();
+builder.Services.AddScoped<ITwoDValidAmountsRepository, TwoDValidAmountsRepository>();
 
 //Services
 builder.Services.AddSingleton<ITokenService,TokenService>();
 builder.Services.AddSingleton<ICacheDrawSettings, CacheDrawSettings>();
+builder.Services.AddSingleton<ICacheTwoDValidAmount, CacheTwoDValidAmount>();
 #endregion
 
 #region MediatR
@@ -66,7 +68,10 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(GetAllUserQuery).Assembly);
 
     //Draw Settings
-    cfg.RegisterServicesFromAssembly(typeof(GetUserBetEntiesQuery).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(GetAllDrawSettingsQuery).Assembly);
+
+    //TwoD Valid Amounts
+    cfg.RegisterServicesFromAssembly(typeof(GetAllTwoDValidAmountsQuery).Assembly);
 });
 
 #endregion
@@ -181,6 +186,8 @@ builder.Services.AddHttpClient("ApiClient", client =>
 
 #region Other Config
 builder.Configuration.GetValue<int>("BetSettings:TwoDMaxBet");
+builder.Configuration.GetValue<int>("BetSettings:TwoD1stDigitMin");
+builder.Configuration.GetValue<int>("BetSettings:TwoD2ndDigitMax");
 #endregion
 
 #endregion

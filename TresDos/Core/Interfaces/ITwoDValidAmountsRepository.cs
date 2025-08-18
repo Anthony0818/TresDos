@@ -4,11 +4,11 @@ namespace TresDos.Core.Interfaces
 {
     public interface ITwoDValidAmountsRepository
     {
-        Task<IEnumerable<ltb_DrawSettings>> GetAllAsync();
-        Task<ltb_DrawSettings?> GetByIdAsync(int id);
-        Task<ltb_DrawSettings?> GetByTypeAsync(string type);
-        Task AddAsync(ltb_DrawSettings setting);
-        Task UpdateAsync(ltb_DrawSettings setting);
+        Task<IEnumerable<ltb_twoDValidAmounts>> GetAllAsync();
+        Task<ltb_twoDValidAmounts?> GetByIdAsync(int id);
+        Task<ltb_twoDValidAmounts?> GetByTypeAsync(string type);
+        Task AddAsync(ltb_twoDValidAmounts setting);
+        Task UpdateAsync(ltb_twoDValidAmounts setting);
         Task DeleteAsync(int id);
     }
 }

@@ -9,6 +9,7 @@ namespace TresDos.Infrastructure.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<tb_TwoD> tb_TwoD { get; set; }
         public DbSet<ltb_DrawSettings> ltb_DrawSettings { get; set; }
+        public DbSet<ltb_twoDValidAmounts> ltb_twoDValidAmounts { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
     }

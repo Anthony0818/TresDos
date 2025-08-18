@@ -23,13 +23,21 @@ namespace TresDos.Controllers.Web
     public class BetController : Controller
     {
         private readonly ICacheDrawSettings _drawSettings;
+        private readonly ICacheTwoDValidAmount _twoDValidAmounts;
         private readonly IHttpClientFactory _clientFactory;
+        private readonly IConfiguration _configuration;
         DateTimeHelper _dateTimeHelper = new DateTimeHelper();
-        private static readonly List<decimal> ValidAmounts = Enumerable.Range(1, 60).Select(i => i * 5m).ToList(); // 10 to 300
-        public BetController(IHttpClientFactory clientFactory, ICacheDrawSettings drawSettings)
+        //private static readonly List<decimal> ValidAmounts = Enumerable.Range(1, 60).Select(i => i * 5m).ToList(); // 10 to 300
+        public BetController(
+            IConfiguration configuration,
+            IHttpClientFactory clientFactory, 
+            ICacheDrawSettings drawSettings, 
+            ICacheTwoDValidAmount twoDValidAmounts)
         {
+            _configuration = configuration;
             _clientFactory = clientFactory;
             _drawSettings = drawSettings;
+            _twoDValidAmounts = twoDValidAmounts;
         }
 
         #region Agents
@@ -285,6 +293,9 @@ namespace TresDos.Controllers.Web
             batch.DrawType = currentDraw?.DrawType == null ? string.Empty : currentDraw.DrawType;
 
             batch.Agents = await GetAgentsUnderIncludingSelf(0);
+
+            var validAmounts = _twoDValidAmounts.GetDataAsync().Result.Select(o => o.Amount).ToList();
+            batch.ValidAmountsConcat = validAmounts.Count > 0 ? string.Join(",", validAmounts): string.Empty;
         }
         [Route("Bet/2d")]
         public async Task<IActionResult> TwoD(string TimeOptions, string SelectedDate)
@@ -323,6 +334,10 @@ namespace TresDos.Controllers.Web
                 string bettorName = string.Empty;
                 batch.SelectedAgentText = model.SelectedAgentText;
 
+                var validAmounts = _twoDValidAmounts.GetDataAsync().Result.Select(o => o.Amount).ToList();
+                int twoDMin = _configuration.GetValue<int>("BetSettings:TwoDMin");
+                int twoDMax = _configuration.GetValue<int>("BetSettings:TwoDMax");
+
                 foreach (var line in lines.Select(l => l.Trim()).Where(l => !string.IsNullOrEmpty(l)))
                 {
                     if (line.StartsWith("@"))
@@ -345,8 +360,8 @@ namespace TresDos.Controllers.Web
 
                     if (currentEntry == null)
                         continue;
-
-                    var bet = Parse2DBetLine(line);
+                   
+                    var bet = ParseTwoDBetLine(line, validAmounts, twoDMin, twoDMax);
                     if (bet.Combination != null)
                     {
                         string normalizedCombination = bet.Combination;
@@ -532,7 +547,7 @@ namespace TresDos.Controllers.Web
             }
             return View("TwoD", batch);
         }
-        private BetLine Parse2DBetLine(string line)
+        private BetLine ParseTwoDBetLine(string line, List<decimal> validAmounts, int twoDMin, int twoDMax)
         {
             var result = new BetLine
             {
@@ -560,12 +575,12 @@ namespace TresDos.Controllers.Web
                 result.Amount = Convert.ToDecimal(amountStr);
                 result.Type = type.ToUpper();
 
-                bool isValidCombo1 = int.TryParse(combo1, out int num1) && num1 >= 1 && num1 <= 31;
-                bool isValidCombo2 = int.TryParse(combo2, out int num2) && num2 >= 1 && num2 <= 31;
+                bool isValidCombo1 = int.TryParse(combo1, out int num1) && num1 >= twoDMin && num1 <= twoDMax;
+                bool isValidCombo2 = int.TryParse(combo2, out int num2) && num2 >= twoDMin && num2 <= twoDMax;
 
                 if (!isValidCombo1 || !isValidCombo2)
                 {
-                    result.Error = "Only numbers from 1 to 31 are allowed.";
+                    result.Error = $"Only numbers from {twoDMin} to {twoDMax} are allowed.";
                     return result;
                 }
 
@@ -575,7 +590,7 @@ namespace TresDos.Controllers.Web
                     return result;
                 }
 
-                if (!ValidAmounts.Contains(amount))
+                if (!validAmounts.Contains(amount))
                 {
                     result.Error = $"Amount {amount} is not allowed.";
                     return result;

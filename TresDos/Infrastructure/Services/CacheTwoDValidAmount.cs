@@ -5,13 +5,13 @@ using System.Net.Http.Json;
 
 namespace TresDos.Services
 {
-    public class CacheTwoDValidaAmount : ICacheDrawSettings
+    public class CacheTwoDValidAmount : ICacheTwoDValidAmount
     {
         private List<ltb_twoDValidAmounts> _cachedData = new();
         private readonly IHttpClientFactory _clientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CacheTwoDValidaAmount(
+        public CacheTwoDValidAmount(
             IHttpClientFactory clientFactory,
             IHttpContextAccessor httpContextAccessor)
         {
@@ -47,7 +47,7 @@ namespace TresDos.Services
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync("api/DrawSettingsApi");
+            var response = await client.GetAsync("api/TwoDValidAmountsApi");
 
             if (response.IsSuccessStatusCode)
             {

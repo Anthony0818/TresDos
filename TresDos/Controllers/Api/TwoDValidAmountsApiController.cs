@@ -9,5 +9,5 @@ public class TwoDValidAmountsApiController : ControllerBase
     public TwoDValidAmountsApiController(IMediator mediator) => _mediator = mediator;
 
     [HttpGet]
-    public async Task<IActionResult> Get() => Ok(await _mediator.Send(new GetUserBetEntiesQuery()));
+    public async Task<IActionResult> Get() => Ok(await _mediator.Send(new GetAllTwoDValidAmountsQuery()));
 }

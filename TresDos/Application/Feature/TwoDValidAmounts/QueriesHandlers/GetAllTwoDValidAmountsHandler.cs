@@ -9,9 +9,9 @@ namespace TresDos.Application.Feature.DrawSettings.QueriesHandlers
     public class GetAllTwoDValidAmountsHandler : IRequestHandler<GetAllTwoDValidAmountsQuery, List<ltb_twoDValidAmounts>>
     {
         private readonly IMapper _mapper;
-        private readonly IDrawSetingsRepository _repo;
+        private readonly ITwoDValidAmountsRepository _repo;
 
-        public GetAllTwoDValidAmountsHandler(IDrawSetingsRepository repo, IMapper mapper)
+        public GetAllTwoDValidAmountsHandler(ITwoDValidAmountsRepository repo, IMapper mapper)
         {
             _repo = repo;
             _mapper = mapper;
@@ -19,8 +19,9 @@ namespace TresDos.Application.Feature.DrawSettings.QueriesHandlers
 
         public async Task<List<ltb_twoDValidAmounts>> Handle(GetAllTwoDValidAmountsQuery request, CancellationToken cancellationToken)
         {
-            var products = await _repo.GetAllAsync();
-            return _mapper.Map<List<ltb_twoDValidAmounts>>(products);
+            var validAmounts = await _repo.GetAllAsync();
+            //return _mapper.Map<List<ltb_twoDValidAmounts>>(products);
+            return (List<ltb_twoDValidAmounts>)validAmounts;
         }
     }
 }
