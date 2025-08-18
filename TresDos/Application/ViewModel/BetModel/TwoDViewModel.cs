@@ -21,6 +21,7 @@ namespace TresDos.Application.ViewModel.BetModel
 
         // Optional: list of options to bind to the dropdown
         public List<SelectListItem> TimeOptions { get; set; }
+        public string ValidAmountsConcat { get; set; }
 
     }
     public class Entry
