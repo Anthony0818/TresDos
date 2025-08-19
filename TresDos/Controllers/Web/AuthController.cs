@@ -20,9 +20,9 @@ namespace TresDos.Controllers.Web
         [HttpPost]
         public async Task<IActionResult> Login(LoginModel model)
         {
-            //for testing purposes only
-            model.Username = "ant";
-            model.Password = "testpassword";
+            ////for testing purposes only
+            //model.Username = "ant";
+            //model.Password = "testpassword";
 
             var client = _clientFactory.CreateClient("ApiClient");
             var response = await client.PostAsJsonAsync("/api/authapi/login", model);
@@ -47,9 +47,10 @@ namespace TresDos.Controllers.Web
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
+                ViewBag.Error = response;
             }
 
-            ViewBag.Error = "Invalid login";
+            //ViewBag.Error = "Invalid login";
             return View();
         }
 
