@@ -34,7 +34,7 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Atocha</a>
+                <div class="navbar-brand">Atocha</div>
 
                 <!-- Mobile Toggle Button -->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
@@ -62,7 +62,7 @@
                                 <span class="nav-link text-dark">Hello, @fullName!</span>
                             </li>
                             <li class="nav-item">
-                                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
                                     <button type="submit" class="btn btn-link nav-link text-dark">Logout</button>
                                 </form>
                             </li>

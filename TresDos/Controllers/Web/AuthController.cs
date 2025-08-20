@@ -47,10 +47,10 @@ namespace TresDos.Controllers.Web
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                ViewBag.Error = response;
+                //ViewBag.Error = response;
             }
 
-            //ViewBag.Error = "Invalid login";
+            ViewBag.Error = "Invalid login";
             return View();
         }
 
@@ -68,7 +68,7 @@ namespace TresDos.Controllers.Web
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            return RedirectToAction("Login", "Auth");
         }
     }
 
