@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using TresDos.Application.DTOs.BetDto;
 using TresDos.Core.Entities;
 
 namespace TresDos.Application.Feature.TwoD.Queries
@@ -7,5 +8,5 @@ namespace TresDos.Application.Feature.TwoD.Queries
        int userId, 
        string drawType, 
        DateTime drawDate
-        ) : IRequest<List<tb_TwoD>> { }
+        ) : IRequest<List<TwoDBetsDto>> { }
 }

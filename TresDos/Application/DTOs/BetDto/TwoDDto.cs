@@ -13,6 +13,7 @@
         public int SecondDigit { get; set; }
         public string Type { get; set; }
         public decimal Amount { get; set; }
+        public int CreatedBy { get; set; }
     }
     public class BulkInsertTwoDEntriesRequestDto
     {

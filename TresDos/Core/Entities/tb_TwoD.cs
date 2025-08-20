@@ -12,19 +12,6 @@
         public DateTime CreateDate { get; set; }
         public string DrawType { get; set; }
         public DateTime DrawDate { get; set; }
-
-        //public tb_TwoD(Guid _id, string _Bettor, int _FirstDigit, int _SecondDigit, string _Type, decimal _Amount, int _UserID, DateTime _CreateDate, string _DrawType, DateTime _DrawDate)
-        //{
-        //    this.id = id;
-        //    this.Bettor = _Bettor;
-        //    this.FirstDigit = _FirstDigit;
-        //    this.SecondDigit = _SecondDigit;
-        //    this.Type = _Type;
-        //    this.Amount = _Amount;
-        //    this.UserID = _UserID;
-        //    this.CreateDate = _CreateDate;
-        //    this.DrawType = _DrawType;
-        //    this.DrawDate = _DrawDate;
-        //}
+        public int CreatedBy { get; set; }
     }
 }

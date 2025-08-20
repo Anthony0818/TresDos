@@ -32,6 +32,7 @@ namespace TresDos.Application.ViewModel.BetModel
         public DateTime CreateDate { get; set; }
         public string DrawType { get; set; }
         public DateTime DrawDate { get; set; }
+        public int CreatedBy { get; set; }
     }
 
     public class BetLine

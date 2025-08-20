@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TresDos.Application.DTOs.BetDto;
 using TresDos.Core.Entities;
 
 namespace TresDos.Core.Interfaces
@@ -33,6 +34,6 @@ namespace TresDos.Core.Interfaces
             string type,
             string drawType,
             DateTime drawDate);
-        Task<List<tb_TwoD>?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate);
+        Task<List<TwoDBetsDto>?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate);
       }
 }

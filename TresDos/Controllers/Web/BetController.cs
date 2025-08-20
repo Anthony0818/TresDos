@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -438,7 +439,8 @@ namespace TresDos.Controllers.Web
                             FirstDigit = bet.FirstDigit,
                             SecondDigit = bet.SecondDigit,
                             Type = bet.Type,
-                            Amount = bet.Amount
+                            Amount = bet.Amount,
+                            CreatedBy = HttpContext.Session.GetInt32("UserId") ?? 0
                         }));
                 validEntries.AddRange(twoDDtos);
 
@@ -631,7 +633,7 @@ namespace TresDos.Controllers.Web
 
             if (response.IsSuccessStatusCode)
             {
-                var twoDBets = await response.Content.ReadFromJsonAsync<List<tb_TwoD>>();
+                var twoDBets = await response.Content.ReadFromJsonAsync<List<TwoDBetsDto>>();
                 return Json(new { data = twoDBets });
             }
             else

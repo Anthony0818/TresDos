@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TresDos.Application.DTOs.BetDto;
 using TresDos.Core.Entities;
 using TresDos.Core.Interfaces;
 using TresDos.Infrastructure.Data;
@@ -99,14 +100,42 @@ namespace TresDos.Infrastructure.Repositories
             );
         }
 
-        public async Task<List<tb_TwoD>?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate)
+        //public async Task<List<tb_TwoD>?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate)
+        //{
+        //    var bets = await _context.tb_TwoD
+        //        .Where(a => a.UserID == userId &&
+        //                    a.DrawType == drawType &&
+        //                    a.DrawDate.Date == drawDate.Date)
+        //        .OrderByDescending(a => a.CreateDate)
+        //        .ToListAsync();
+
+        //    return bets;
+        //}
+        public async Task<List<TwoDBetsDto>?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate)
         {
-            var bets = await _context.tb_TwoD
-                .Where(a => a.UserID == userId &&
-                            a.DrawType == drawType &&
-                            a.DrawDate.Date == drawDate.Date)
-                .OrderByDescending(a => a.CreateDate)
-                .ToListAsync();
+            var bets = await (
+                 from bet in _context.tb_TwoD
+                 join agent in _context.Users
+                     on bet.UserID equals agent.Id
+                 join creator in _context.Users
+                     on bet.UserID equals creator.Id
+                 where bet.UserID == userId &&
+                       bet.DrawType == drawType &&
+                       bet.DrawDate.Date == drawDate.Date
+                 orderby bet.CreateDate descending
+                 select new TwoDBetsDto
+                 {
+                     Bettor = bet.Bettor,
+                     FirstDigit = bet.FirstDigit,
+                     SecondDigit = bet.SecondDigit,
+                     Type = bet.Type,
+                     Amount = bet.Amount,
+                     DrawType = bet.DrawType,
+                     DrawDate = bet.DrawDate,
+                     Creator = $"{creator.FirstName} {creator.MiddleName} {creator.LastName}",
+                     AgentName = $"{creator.FirstName} {creator.MiddleName} {creator.LastName}",
+                     CreateDate = bet.CreateDate
+                 }).ToListAsync();
 
             return bets;
         }
