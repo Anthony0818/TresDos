@@ -291,7 +291,7 @@ namespace TresDos.Controllers.Web
 
             batch.DrawCutOffTime = currentDraw?.CutOffTime ?? now.TimeOfDay; // Default to 30 minutes after DrawTime if not set
 
-            batch.DrawType = currentDraw?.DrawType == null ? string.Empty : currentDraw.DrawType;
+            batch.DrawType = currentDraw?.DrawType == null ? "2D 9PM Draw" : currentDraw.DrawType;
 
             batch.Agents = await GetAgentsUnderIncludingSelf(0);
 

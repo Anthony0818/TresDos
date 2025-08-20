@@ -13,5 +13,6 @@
         public string DrawType { get; set; }
         public DateTime DrawDate { get; set; }
         public int CreatedBy { get; set; }
+        public Guid BatchId { get; set; }
     }
 }

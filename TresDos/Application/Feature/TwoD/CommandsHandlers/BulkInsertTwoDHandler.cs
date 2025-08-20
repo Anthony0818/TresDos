@@ -78,6 +78,7 @@ namespace TresDos.Application.Feature.TwoD.Handlers
                         DrawType = dto.DrawType,
                         DrawDate = dto.DrawDate,
                         CreatedBy = dto.CreatedBy,
+                        BatchId = Guid.NewGuid() // Assuming a new batch ID for each entry
                     };
 
                     inserted.Add(entry);

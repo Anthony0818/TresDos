@@ -480,7 +480,21 @@
                                 return new Date(data).toLocaleDateString();
                             }
                         }
-                    ]
+                    ],
+                    rowGroup: {
+          dataSrc: ['agentName','bettor'],
+    endRender: (rows, group) => {
+      const total = rows
+        .data()
+        .pluck('amount')
+        .reduce((sum, val) => sum + parseFloat(val || 0), 0);
+
+      return $('<tr/>')
+        .append('<td colspan="4" style="text-align:right;"><strong>Total for ' + group + ':</strong></td>')
+        .append('<td><strong>' + total.toFixed(2) + '</strong></td>')
+        .append('<td colspan="5"></td>');
+    }
+  }
                 });
             }
         });
