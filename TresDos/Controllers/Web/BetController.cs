@@ -256,22 +256,64 @@ namespace TresDos.Controllers.Web
         //#endregion
 
         #region 2D
-        private async Task InitializeTwoDComponents(TwoDViewModel batch)
+        private async Task InitializeTwoDComponents(TwoDViewModel batch, string DrawType, DateTime DrawDate)
         {
-            var now = _dateTimeHelper.GetPhilippineTime();
-
             var drawSettings = await _drawSettings.GetDataAsync();
             var filteredDrawSettings = drawSettings
                 .Where(ds => ds.DrawType.Contains("2D"))
                 .ToList();
 
+            DateTime now = _dateTimeHelper.GetPhilippineTime();
+            DateTime drawDateFinal;
+            string drawTypeFinal = string.Empty;
+
+            if (DrawDate != DateTime.MinValue)
+                drawDateFinal = DrawDate;
+            else
+                drawDateFinal = now;
+
+            // Get the next available draw (i.e., CutOffTime is still in the future)
+            var currentDraw = drawSettings
+                .Where(d => drawDateFinal.TimeOfDay < d.CutOffTime)
+                .OrderBy(d => d.CutOffTime)
+                .FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(DrawType))
+            {
+                var drawTypeQS = drawSettings.FirstOrDefault(a => a.DrawType == DrawType);
+                if (drawTypeQS != null)
+                {
+                    drawTypeFinal = drawTypeQS.DrawType;
+
+                    currentDraw = drawSettings
+                        .Where(d => d.DrawType == drawTypeFinal)
+                        .OrderBy(d => d.CutOffTime)
+                        .FirstOrDefault();
+                }
+            }
+            else
+                drawTypeFinal = currentDraw?.DrawType ?? "2D 2PM Draw";
+
+            batch.DrawDate = drawDateFinal.Date;
+
+            batch.DrawType = drawTypeFinal;
+
+            batch.DrawTime = currentDraw?.DrawTime ?? drawDateFinal.TimeOfDay;
+
+            batch.DrawCutOffTime = currentDraw?.CutOffTime ?? drawDateFinal.TimeOfDay; // Default to 30 minutes after DrawTime if not set
+
+            batch.Agents = await GetAgentsUnderIncludingSelf(0);
+
+            var validAmounts = _twoDValidAmounts.GetDataAsync().Result.Select(o => o.Amount).ToList();
+            batch.ValidAmountsConcat = validAmounts.Count > 0 ? string.Join(",", validAmounts): string.Empty;
+
             if (filteredDrawSettings.Any())
             {
-                batch.TimeOptions ??= new List<SelectListItem>();
+                batch.DrawTypeOptions ??= new List<SelectListItem>();
 
                 foreach (var ds in filteredDrawSettings)
                 {
-                    batch.TimeOptions.Add(new SelectListItem
+                    batch.DrawTypeOptions.Add(new SelectListItem
                     {
                         Text = ds.DrawType,
                         Value = ds.DrawType
@@ -279,27 +321,24 @@ namespace TresDos.Controllers.Web
                 }
             }
 
-            // Get the next available draw (i.e., CutOffTime is still in the future)
-            var currentDraw = drawSettings
-                .Where(d => now.TimeOfDay < d.CutOffTime)
-                .OrderBy(d => d.CutOffTime)
-                .FirstOrDefault();
 
-            batch.DrawDate = now.Date;
+            if (drawDateFinal.Date != now.Date)
+                batch.IsBetAllowed = false;
+            else
+            {
+                // Check if the current time is before the cut-off time
+                if (now.TimeOfDay < batch.DrawCutOffTime)
+                    batch.IsBetAllowed = true;
+                else
+                    batch.IsBetAllowed = false;
+            }
 
-            batch.DrawTime = currentDraw?.DrawTime ?? now.TimeOfDay;
-
-            batch.DrawCutOffTime = currentDraw?.CutOffTime ?? now.TimeOfDay; // Default to 30 minutes after DrawTime if not set
-
-            batch.DrawType = currentDraw?.DrawType == null ? "2D 9PM Draw" : currentDraw.DrawType;
-
-            batch.Agents = await GetAgentsUnderIncludingSelf(0);
-
-            var validAmounts = _twoDValidAmounts.GetDataAsync().Result.Select(o => o.Amount).ToList();
-            batch.ValidAmountsConcat = validAmounts.Count > 0 ? string.Join(",", validAmounts): string.Empty;
+            //// Set selected values for dropdowns
+            //batch.SelectedDrawDate = batch.DrawDate.ToString("yyyy-MM-dd");
+            //batch.SelectedDrawType = batch.DrawType;
         }
         [Route("Bet/2d")]
-        public async Task<IActionResult> TwoD(string TimeOptions, string SelectedDate)
+        public async Task<IActionResult> TwoD(string DrawType, DateTime DrawDate)
         {
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
@@ -307,13 +346,13 @@ namespace TresDos.Controllers.Web
 
             var batch = new TwoDViewModel();
 
-            await InitializeTwoDComponents(batch);
+            await InitializeTwoDComponents(batch, DrawType, DrawDate);
 
             return View(batch);
         }
         [Route("Bet/2d")]
         [HttpPost]
-        public async Task<IActionResult> TwoD(TwoDViewModel model, string action, string TimeOptions, string SelectedDate)
+        public async Task<IActionResult> TwoD(TwoDViewModel model, string action, string DrawType, DateTime DrawDate)
         {
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
@@ -321,7 +360,7 @@ namespace TresDos.Controllers.Web
 
             var batch = new TwoDViewModel();
 
-            await InitializeTwoDComponents(batch);
+            await InitializeTwoDComponents(batch, DrawType, DrawDate);
 
             if (action == "Validate")
             {

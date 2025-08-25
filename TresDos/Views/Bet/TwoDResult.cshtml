@@ -15,29 +15,6 @@
             <div class="card-body">
                 @if (Model != null)
                 {
-                    @foreach (var bet in Model)
-                    {
-                        <!-- MOBILE CARD LAYOUT -->
-                        <div class="mobile-cards">
-                            @{
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        @bet.FirstDigit - @bet.SecondDigit = @bet.Amount@bet.Type
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="mb-1"><strong>Bettor:</strong> @bet.Bettor</p>
-                                        <p class="mb-1"><strong>Combination:</strong>  @bet.FirstDigit - @bet.SecondDigit</p>
-                                        <p class="mb-1"><strong>Amount:</strong> @bet.Amount</p>
-                                        <p class="mb-1"><strong>Bet Type:</strong> @bet.Type</p>
-                                        <p class="mb-1"><strong>Draw Type:</strong> @bet.DrawType</p>
-                                        <p class="mb-1"><strong>Draw Date:</strong> @bet.DrawDate</p>
-                                        <p class="mb-1"><strong>Create Date:</strong> @bet.CreateDate</p>
-                                        <p class="mb-1"><strong>Reference ID:</strong> @bet.id</p>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
                     <div class="bet-section">
 
                         <!--INVALID BETS-->
@@ -65,6 +42,29 @@
                             </div>
                         </div>
                     </div>
+                    @foreach (var bet in Model)
+                    {
+                        <!-- MOBILE CARD LAYOUT -->
+                        <div class="mobile-cards">
+                            @{
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        @bet.FirstDigit - @bet.SecondDigit = @bet.Amount@bet.Type
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-1"><strong>Bettor:</strong> @bet.Bettor</p>
+                                        <p class="mb-1"><strong>Combination:</strong>  @bet.FirstDigit - @bet.SecondDigit</p>
+                                        <p class="mb-1"><strong>Amount:</strong> @bet.Amount</p>
+                                        <p class="mb-1"><strong>Bet Type:</strong> @bet.Type</p>
+                                        <p class="mb-1"><strong>Draw Type:</strong> @bet.DrawType</p>
+                                        <p class="mb-1"><strong>Draw Date:</strong> @bet.DrawDate</p>
+                                        <p class="mb-1"><strong>Create Date:</strong> @bet.CreateDate</p>
+                                        <p class="mb-1"><strong>Reference ID:</strong> @bet.id</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
                 }
                 <button class="btn btn-success me-2 mb-2"  onclick="window.location.href='@Url.Action("2d", "Bet")'">
                     Add more bets..

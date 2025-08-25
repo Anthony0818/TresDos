@@ -5,6 +5,7 @@ namespace TresDos.Application.ViewModel.BetModel
 {
     public class TwoDViewModel
     {
+        public bool IsBetAllowed { get; set; } = true;
         [Required(ErrorMessage = "Combination Entry is required.")]
         public string Entry { get; set; }
         [Required(ErrorMessage = "Select Agent.")]
@@ -20,9 +21,10 @@ namespace TresDos.Application.ViewModel.BetModel
         public TimeSpan DrawCutOffTime { get; set; }
 
         // Optional: list of options to bind to the dropdown
-        public List<SelectListItem> TimeOptions { get; set; }
+        public List<SelectListItem> DrawTypeOptions { get; set; }
         public string ValidAmountsConcat { get; set; }
-
+        //public string SelectedDrawDate { get; set; }
+        //public string SelectedDrawType { get; set; }
     }
     public class Entry
     {
