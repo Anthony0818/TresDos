@@ -57,11 +57,21 @@ namespace TresDos.Controllers.Web
 
             var users = await response.Content.ReadFromJsonAsync<List<User>>();
 
-            var userList = users?.Select(u => new SelectListItem
-            {
-                Text = (u.FirstName + " " + u.MiddleName + " " + u.LastName),
-                Value = u.Id.ToString()
-            }).ToList() ?? new List<SelectListItem>();
+            //var userList = users?.Select(u => new SelectListItem
+            //{
+            //    Text = (u.FirstName + " " + u.MiddleName + " " + u.LastName),
+            //    Value = u.Id.ToString()
+            //}).ToList() ?? new List<SelectListItem>();
+
+            int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            var userList = users?
+                .Where(u => u.Id == userId)
+                .Select(u => new SelectListItem
+                {
+                    Text = $"{u.FirstName} {u.MiddleName} {u.LastName}",
+                    Value = u.Id.ToString(),
+                    Selected = true
+                }).ToList() ?? new List<SelectListItem>();
 
             userList.Insert(0, new SelectListItem
             {
