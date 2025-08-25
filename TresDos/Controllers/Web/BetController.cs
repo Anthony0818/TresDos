@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -539,7 +540,7 @@ namespace TresDos.Controllers.Web
                 // Serialize and store in session
                 HttpContext.Session.SetString("UpdatedValidBets", JsonConvert.SerializeObject(validEntries));
             }
-            else //Submitting of Bets
+            else if(action == "Submit") //Submitting of Bets
             {
                 HttpContext.Session.SetString("TwoDSubmitResult", string.Empty);
                 //var validEntries = new List<TwoDDto>();
@@ -730,6 +731,32 @@ namespace TresDos.Controllers.Web
                 .ToList();
 
             return View(viewModelList);
+        }
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> DeleteSelectedBets([FromBody] DeleteBetsRequest request)
+        //{
+        //    if (request?.Ids == null || !request.Ids.Any())
+        //        return BadRequest("No IDs provided.");
+
+        //    // Replace with your actual deletion logic
+        //    foreach (var id in request.Ids)
+        //    {
+        //        var bet = await _context.Bets.FindAsync(id);
+        //        if (bet != null)
+        //        {
+        //            _context.Bets.Remove(bet);
+        //        }
+        //    }
+
+        //    await _context.SaveChangesAsync();
+        //    return Ok();
+        //}
+
+        public class DeleteBetsRequest
+        {
+            public List<int> Ids { get; set; }
         }
         #endregion
 
