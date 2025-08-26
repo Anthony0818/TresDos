@@ -3,6 +3,7 @@ using TresDos.Application.DTOs.BetDto;
 using TresDos.Core.Entities;
 using TresDos.Core.Interfaces;
 using TresDos.Infrastructure.Data;
+using EFCore.BulkExtensions;
 
 namespace TresDos.Infrastructure.Repositories
 {
@@ -76,8 +77,9 @@ namespace TresDos.Infrastructure.Repositories
 
         public async Task AddEntriesAsync(IEnumerable<tb_TwoD> entries)
         {
-            await _context.tb_TwoD.AddRangeAsync(entries);
-            await _context.SaveChangesAsync();
+            //await _context.tb_TwoD.AddRangeAsync(entries);
+            //await _context.SaveChangesAsync();
+            await _context.BulkInsertAsync(entries);
         }
 
         public async Task<bool> EntryExistsAsync(
@@ -125,6 +127,7 @@ namespace TresDos.Infrastructure.Repositories
                  orderby bet.CreateDate descending
                  select new TwoDBetsDto
                  {
+                     id = bet.id,
                      Bettor = bet.Bettor,
                      FirstDigit = bet.FirstDigit,
                      SecondDigit = bet.SecondDigit,
@@ -138,6 +141,14 @@ namespace TresDos.Infrastructure.Repositories
                  }).ToListAsync();
 
             return bets;
+        }
+        public async Task RemoveEntriesAsync(BulkDeleteEntriesRequest Guids)
+        {
+            var usersToDelete = await _context.tb_TwoD
+                .Where(u => Guids.ids.Contains(u.id))
+                .ToListAsync();
+
+            await _context.BulkDeleteAsync(usersToDelete);
         }
     }
 }

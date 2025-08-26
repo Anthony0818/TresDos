@@ -22,30 +22,6 @@ public class TwoDApiController : ControllerBase
 
         var response = new BulkInsertTwoDEntriesResponseDto
         {
-            //EntriesInserted = result.Item1.Select(r => new List<tb_TwoD>
-            //{
-            //    r.id,
-            //    r.Bettor,
-            //    r.FirstDigit,
-            //    r.SecondDigit,
-            //    r.Type,
-            //    r.Amount,
-            //    r.DrawType,
-            //    r.DrawDate,
-            //    r.CreateDate
-            //}),
-            //EntriesWithError = result.Item2.Select(r => new List<BulkInsertTwoDEntriesProcessingResultDto>
-            //{
-            //    r.id,
-            //    r.Bettor,
-            //    r.FirstDigit,
-            //    r.SecondDigit,
-            //    r.Type,
-            //    r.Amount,
-            //    r.Message,
-            //    r.IsInserted,
-            //    r.AvailableBalance
-            //})
             EntriesInserted = result.Item1.ToList(),
             EntriesResults = result.Item2.ToList()
         };
@@ -59,7 +35,6 @@ public class TwoDApiController : ControllerBase
 
         return Ok(result);
     }
-    //[HttpGet("GetBetsByUserIdDrawTypeDrawDate/{userId}/{drawType}/{drawDate}")]
     [HttpGet("GetBetsByUserIdDrawTypeDrawDate")]
     public async Task<IActionResult> GetBetsByUserIdDrawTypeDrawDate(
          int userId,
@@ -73,5 +48,12 @@ public class TwoDApiController : ControllerBase
             return NotFound();
 
         return Ok(twoBets);
+    }
+    [HttpPost("BulkDeleteTwoD")]
+    public async Task<IActionResult> BulkDeleteTwoD([FromBody] BulkDeleteTwoDCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        return Ok(result);
     }
 }

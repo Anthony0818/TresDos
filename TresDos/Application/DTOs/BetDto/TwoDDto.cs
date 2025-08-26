@@ -35,4 +35,8 @@
         public string Message { get; set; }
         public decimal AvailableBalance { get; set; }
     }
+    public class BulkDeleteEntriesRequest
+    {
+        public List<Guid> ids { get; set; }
+    }
 }

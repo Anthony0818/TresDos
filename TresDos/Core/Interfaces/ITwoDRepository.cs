@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TresDos.Application.DTOs.BetDto;
+using TresDos.Application.Feature.TwoD.Commands;
 using TresDos.Core.Entities;
 
 namespace TresDos.Core.Interfaces
@@ -35,5 +36,6 @@ namespace TresDos.Core.Interfaces
             string drawType,
             DateTime drawDate);
         Task<List<TwoDBetsDto>?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate);
-      }
+        public Task RemoveEntriesAsync(BulkDeleteEntriesRequest Guids);
+    }
 }

@@ -77,7 +77,7 @@ namespace TresDos.Controllers.Web
             userList.Insert(0, new SelectListItem
             {
                 Text = "-- Select Agent --",
-                Value = "",
+                Value = "0",
                 Selected = true
             });
             return userList;
@@ -658,10 +658,7 @@ namespace TresDos.Controllers.Web
 
             return result;
         }
-        //[HttpPost]
-        //public async Task<JsonResult> LoadTwoDBetsAsync(string drawType)
-        //[HttpGet("LoadTwoDBetsAsync/{drawType}")]
-        
+
         [Route("Bet/LoadTwoDBetsAsync")]
         [HttpGet]
         public async Task<IActionResult> LoadTwoDBetsAsync(string drawType)
@@ -733,30 +730,37 @@ namespace TresDos.Controllers.Web
             return View(viewModelList);
         }
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteSelectedBets([FromBody] DeleteBetsRequest request)
-        //{
-        //    if (request?.Ids == null || !request.Ids.Any())
-        //        return BadRequest("No IDs provided.");
-
-        //    // Replace with your actual deletion logic
-        //    foreach (var id in request.Ids)
-        //    {
-        //        var bet = await _context.Bets.FindAsync(id);
-        //        if (bet != null)
-        //        {
-        //            _context.Bets.Remove(bet);
-        //        }
-        //    }
-
-        //    await _context.SaveChangesAsync();
-        //    return Ok();
-        //}
-
-        public class DeleteBetsRequest
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteSelectedBets([FromBody] BulkDeleteEntriesRequest request)
         {
-            public List<int> Ids { get; set; }
+            var token = HttpContext.Session.GetString("JWToken");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login", "Auth");
+
+            if (request.ids == null || !request.ids.Any())
+                return BadRequest("No IDs provided.");
+
+            var client = _clientFactory.CreateClient("ApiClient");
+            client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
+            var requestDto = new
+            {
+                requestDto = new BulkDeleteEntriesRequest
+                {
+                    ids = request.ids
+                }
+            };
+
+            var response = await client.PostAsJsonAsync("api/TwoDApi/BulkDeleteTwoD", requestDto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                return BadRequest(json);
+            }
+            return Ok();
         }
         #endregion
 
