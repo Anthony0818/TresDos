@@ -343,10 +343,6 @@ namespace TresDos.Controllers.Web
                 else
                     batch.IsBetAllowed = false;
             }
-
-            //// Set selected values for dropdowns
-            //batch.SelectedDrawDate = batch.DrawDate.ToString("yyyy-MM-dd");
-            //batch.SelectedDrawType = batch.DrawType;
         }
         [Route("Bet/2d")]
         public async Task<IActionResult> TwoD(string DrawType, DateTime DrawDate)
@@ -411,7 +407,7 @@ namespace TresDos.Controllers.Web
 
                     if (currentEntry == null)
                         continue;
-                   
+
                     var bet = ParseTwoDBetLine(line, validAmounts, twoDMin, twoDMax);
                     if (bet.Combination != null)
                     {
@@ -523,7 +519,7 @@ namespace TresDos.Controllers.Web
                                     // Filter valid bet lines
                                     var validBets = entry.Bets.Where(bet => string.IsNullOrWhiteSpace(bet.Error)).ToList();
                                     var item = validBets.FirstOrDefault(o => o.id == resultItem.id); if (item != null)
-                                    { 
+                                    {
                                         //Update bet error
                                         item.Error = resultItem.Message;
                                     }
@@ -540,7 +536,7 @@ namespace TresDos.Controllers.Web
                 // Serialize and store in session
                 HttpContext.Session.SetString("UpdatedValidBets", JsonConvert.SerializeObject(validEntries));
             }
-            else if(action == "Submit") //Submitting of Bets
+            else if (action == "Submit") //Submitting of Bets
             {
                 HttpContext.Session.SetString("TwoDSubmitResult", string.Empty);
                 //var validEntries = new List<TwoDDto>();
@@ -597,6 +593,7 @@ namespace TresDos.Controllers.Web
                     }
                 }
             }
+           
             return View("TwoD", batch);
         }
         private BetLine ParseTwoDBetLine(string line, List<decimal> validAmounts, int twoDMin, int twoDMax)

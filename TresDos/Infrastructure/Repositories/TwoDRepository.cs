@@ -77,9 +77,8 @@ namespace TresDos.Infrastructure.Repositories
 
         public async Task AddEntriesAsync(IEnumerable<tb_TwoD> entries)
         {
-            //await _context.tb_TwoD.AddRangeAsync(entries);
-            //await _context.SaveChangesAsync();
-            await _context.BulkInsertAsync(entries);
+            await _context.tb_TwoD.AddRangeAsync(entries);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> EntryExistsAsync(
@@ -102,17 +101,6 @@ namespace TresDos.Infrastructure.Repositories
             );
         }
 
-        //public async Task<List<tb_TwoD>?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate)
-        //{
-        //    var bets = await _context.tb_TwoD
-        //        .Where(a => a.UserID == userId &&
-        //                    a.DrawType == drawType &&
-        //                    a.DrawDate.Date == drawDate.Date)
-        //        .OrderByDescending(a => a.CreateDate)
-        //        .ToListAsync();
-
-        //    return bets;
-        //}
         public async Task<List<TwoDBetsDto>?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate)
         {
             var bets = await (

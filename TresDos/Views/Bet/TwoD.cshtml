@@ -96,7 +96,7 @@
                                 <div class="col-12 mb-3">
                                     <label asp-for="Entry" class="form-label">Agent</label>
                                     @Html.DropDownListFor(m => m.SelectedAgentID, Model.Agents, new { @class = "form-select" })
-                                    @Html.HiddenFor(m => m.SelectedAgentText, new { id = "selectedAgentText" })
+                                   @*  @Html.HiddenFor(m => m.SelectedAgentText, new { id = "selectedAgentText" }) *@
                                     <span asp-validation-for="SelectedAgentID" class="text-danger"></span>
                                 </div>
                             </div>
@@ -463,12 +463,12 @@
 
 @section Scripts {
 
-    <script type="text/javascript">
-        document.querySelector("[name='SelectedAgentID']").addEventListener('change', function () {
-            var selectedOption = this.options[this.selectedIndex];
-            document.getElementById("selectedAgentText").value = selectedOption.text;
-        });
-    </script>
+    // <script type="text/javascript">
+    //     document.querySelector("[name='SelectedAgentID']").addEventListener('change', function () {
+    //         var selectedOption = this.options[this.selectedIndex];
+    //         document.getElementById("selectedAgentText").value = selectedOption.text;
+    //     });
+    // </script>
 
     <script type="text/javascript">
         $(document).ready(function () {

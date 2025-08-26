@@ -8,7 +8,8 @@ namespace TresDos.Application.ViewModel.BetModel
         public bool IsBetAllowed { get; set; } = true;
         [Required(ErrorMessage = "Combination Entry is required.")]
         public string Entry { get; set; }
-        [Required(ErrorMessage = "Select Agent.")]
+        //[Required(ErrorMessage = "Agent is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Agent is required.")]
         [Display(Name = "Agent")]
         public int SelectedAgentID { get; set; }
         public string SelectedAgentText { get; set; }
@@ -23,8 +24,6 @@ namespace TresDos.Application.ViewModel.BetModel
         // Optional: list of options to bind to the dropdown
         public List<SelectListItem> DrawTypeOptions { get; set; }
         public string ValidAmountsConcat { get; set; }
-        //public string SelectedDrawDate { get; set; }
-        //public string SelectedDrawType { get; set; }
     }
     public class Entry
     {
