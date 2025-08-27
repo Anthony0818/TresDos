@@ -267,19 +267,26 @@ namespace TresDos.Controllers.Web
         //#endregion
 
         #region 2D
-        private async Task InitializeTwoDComponents(TwoDViewModel batch, string DrawType, DateTime DrawDate)
+        private async Task InitializeTwoDComponents(TwoDViewModel model)
         {
             var drawSettings = await _drawSettings.GetDataAsync();
             var filteredDrawSettings = drawSettings
                 .Where(ds => ds.DrawType.Contains("2D"))
                 .ToList();
 
+            model.DrawTypeOptions = filteredDrawSettings
+                .Select(ds => new SelectListItem
+                {
+                    Text = ds.DrawType,
+                    Value = ds.DrawType
+                }).ToList();
+
             DateTime now = _dateTimeHelper.GetPhilippineTime();
             DateTime drawDateFinal;
             string drawTypeFinal = string.Empty;
 
-            if (DrawDate != DateTime.MinValue)
-                drawDateFinal = DrawDate;
+            if (model.DrawDate != DateTime.MinValue)
+                drawDateFinal = model.DrawDate;
             else
                 drawDateFinal = now;
 
@@ -289,9 +296,9 @@ namespace TresDos.Controllers.Web
                 .OrderBy(d => d.CutOffTime)
                 .FirstOrDefault();
 
-            if (!string.IsNullOrEmpty(DrawType))
+            if (!string.IsNullOrEmpty(model.DrawType))
             {
-                var drawTypeQS = drawSettings.FirstOrDefault(a => a.DrawType == DrawType);
+                var drawTypeQS = drawSettings.FirstOrDefault(a => a.DrawType == model.DrawType);
                 if (drawTypeQS != null)
                 {
                     drawTypeFinal = drawTypeQS.DrawType;
@@ -305,69 +312,56 @@ namespace TresDos.Controllers.Web
             else
                 drawTypeFinal = currentDraw?.DrawType ?? "2D 2PM Draw";
 
-            batch.DrawDate = drawDateFinal.Date;
+            model.DrawDate = drawDateFinal.Date;
 
-            batch.DrawType = drawTypeFinal;
+            model.DrawType = drawTypeFinal;
 
-            batch.DrawTime = currentDraw?.DrawTime ?? drawDateFinal.TimeOfDay;
+            model.DrawTime = currentDraw?.DrawTime ?? drawDateFinal.TimeOfDay;
 
-            batch.DrawCutOffTime = currentDraw?.CutOffTime ?? drawDateFinal.TimeOfDay; // Default to 30 minutes after DrawTime if not set
+            model.DrawCutOffTime = currentDraw?.CutOffTime ?? drawDateFinal.TimeOfDay; // Default to 30 minutes after DrawTime if not set
 
-            batch.Agents = await GetAgentsUnderIncludingSelf(0);
+            model.Agents = await GetAgentsUnderIncludingSelf(0);
 
             var validAmounts = _twoDValidAmounts.GetDataAsync().Result.Select(o => o.Amount).ToList();
-            batch.ValidAmountsConcat = validAmounts.Count > 0 ? string.Join(",", validAmounts): string.Empty;
 
-            if (filteredDrawSettings.Any())
-            {
-                batch.DrawTypeOptions ??= new List<SelectListItem>();
-
-                foreach (var ds in filteredDrawSettings)
-                {
-                    batch.DrawTypeOptions.Add(new SelectListItem
-                    {
-                        Text = ds.DrawType,
-                        Value = ds.DrawType
-                    });
-                }
-            }
+            model.ValidAmountsConcat = validAmounts.Count > 0 ? string.Join(",", validAmounts): string.Empty;
 
 
             if (drawDateFinal.Date != now.Date)
-                batch.IsBetAllowed = false;
+                model.IsBetAllowed = false;
             else
             {
                 // Check if the current time is before the cut-off time
-                if (now.TimeOfDay < batch.DrawCutOffTime)
-                    batch.IsBetAllowed = true;
+                if (now.TimeOfDay < model.DrawCutOffTime)
+                    model.IsBetAllowed = true;
                 else
-                    batch.IsBetAllowed = false;
+                    model.IsBetAllowed = false;
             }
         }
         [Route("Bet/2d")]
-        public async Task<IActionResult> TwoD(string DrawType, DateTime DrawDate)
+        public async Task<IActionResult> TwoD()
         {
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
                 return RedirectToAction("Login", "Auth");
 
-            var batch = new TwoDViewModel();
+            var model = new TwoDViewModel();
 
-            await InitializeTwoDComponents(batch, DrawType, DrawDate);
+            await InitializeTwoDComponents(model);
 
-            return View(batch);
+            return View(model);
         }
         [Route("Bet/2d")]
         [HttpPost]
-        public async Task<IActionResult> TwoD(TwoDViewModel model, string action, string DrawType, DateTime DrawDate)
+        public async Task<IActionResult> TwoD(TwoDViewModel model, string action)
         {
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
                 return RedirectToAction("Login", "Auth");
 
-            var batch = new TwoDViewModel();
+            await InitializeTwoDComponents(model);
 
-            await InitializeTwoDComponents(batch, DrawType, DrawDate);
+            //var batch = new TwoDViewModel();
 
             if (action == "Validate")
             {
@@ -379,7 +373,7 @@ namespace TresDos.Controllers.Web
                 HashSet<string> bettorNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 HashSet<string> localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 string bettorName = string.Empty;
-                batch.SelectedAgentText = model.SelectedAgentText;
+                model.SelectedAgentText = model.SelectedAgentText;
 
                 var validAmounts = _twoDValidAmounts.GetDataAsync().Result.Select(o => o.Amount).ToList();
                 int twoDMin = _configuration.GetValue<int>("BetSettings:TwoDMin");
@@ -392,7 +386,7 @@ namespace TresDos.Controllers.Web
                         //bettorName = line.Substring(1).Trim();
                         bettorName = line.Trim();
                         currentEntry = new Entry { BettorName = bettorName };
-                        batch.Entries.Add(currentEntry);
+                        model.Entries.Add(currentEntry);
                         continue;
                     }
                     else
@@ -400,8 +394,8 @@ namespace TresDos.Controllers.Web
                         if (!line.Contains("=")) // It's a header like "test" or "@test"
                         {
                             ViewBag.InvalidBettorName = "There are errors on the submitted bets. Please check for the allowed Bets format. Check that Bettor Name is prefixed with @.\r\nIncorrect raw bets given";
-                            batch.Entries = null;
-                            return View("TwoD", batch);
+                            model.Entries = null;
+                            return View("TwoD", model);
                         }
                     }
 
@@ -471,7 +465,7 @@ namespace TresDos.Controllers.Web
                 //        entries.Add(twoDDto);
                 //    }
                 //}
-                var twoDDtos = batch.Entries
+                var twoDDtos = model.Entries
                     .SelectMany(entry => entry.Bets
                         .Where(bet => string.IsNullOrWhiteSpace(bet.Error))
                         .Select(bet => new TwoDDto
@@ -480,8 +474,8 @@ namespace TresDos.Controllers.Web
                             Bettor = entry.BettorName,
                             UserID = model.SelectedAgentID,
                             CreateDate = _dateTimeHelper.GetPhilippineTime(),
-                            DrawType = batch.DrawType,
-                            DrawDate = batch.DrawDate,
+                            DrawType = model.DrawType,
+                            DrawDate = model.DrawDate,
                             FirstDigit = bet.FirstDigit,
                             SecondDigit = bet.SecondDigit,
                             Type = bet.Type,
@@ -514,7 +508,7 @@ namespace TresDos.Controllers.Web
                             foreach (var resultItem in result)
                             {
                                 // Loop through Entries
-                                foreach (var entry in batch.Entries)
+                                foreach (var entry in model.Entries)
                                 {
                                     // Filter valid bet lines
                                     var validBets = entry.Bets.Where(bet => string.IsNullOrWhiteSpace(bet.Error)).ToList();
@@ -594,7 +588,7 @@ namespace TresDos.Controllers.Web
                 }
             }
            
-            return View("TwoD", batch);
+            return View("TwoD", model);
         }
         private BetLine ParseTwoDBetLine(string line, List<decimal> validAmounts, int twoDMin, int twoDMax)
         {

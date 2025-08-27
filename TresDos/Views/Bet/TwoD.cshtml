@@ -425,6 +425,7 @@
                                 <table id="betsTable" class="table table-striped table-hover table-bordered align-middle shadow-sm">
                                     <thead class="table-info">
                                         <tr>
+                                            <th style="width: 10px;"></th>
                                             <th>Bettor</th>
                                             <th>1st #</th>
                                             <th>2nd #</th>
@@ -462,13 +463,6 @@
 }
 
 @section Scripts {
-
-    // <script type="text/javascript">
-    //     document.querySelector("[name='SelectedAgentID']").addEventListener('change', function () {
-    //         var selectedOption = this.options[this.selectedIndex];
-    //         document.getElementById("selectedAgentText").value = selectedOption.text;
-    //     });
-    // </script>
 
     <script type="text/javascript">
         $(document).ready(function () {
@@ -530,7 +524,7 @@
                         }
                     ],
                     rowGroup: {
-                              dataSrc: ['agentName','bettor'],
+                              dataSrc: ['bettor'],
                         endRender: (rows, group) => {
                           const total = rows
                             .data()

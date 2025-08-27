@@ -132,11 +132,24 @@ namespace TresDos.Infrastructure.Repositories
         }
         public async Task RemoveEntriesAsync(BulkDeleteEntriesRequest Guids)
         {
-            var usersToDelete = await _context.tb_TwoD
-                .Where(u => Guids.ids.Contains(u.id))
+            //var betsToDelete = await _context.tb_TwoD
+            //    .Where(u => Guids.ids.Contains(u.id))
+            //    .ToListAsync();
+
+            //await _context.BulkDeleteAsync(betsToDelete);
+
+            if (Guids?.ids == null || !Guids.ids.Any())
+                return;
+
+            var entities = await _context.tb_TwoD
+                .Where(x => Guids.ids.Contains(x.id))
                 .ToListAsync();
 
-            await _context.BulkDeleteAsync(usersToDelete);
+            if (entities.Any())
+            {
+                _context.tb_TwoD.RemoveRange(entities);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }
