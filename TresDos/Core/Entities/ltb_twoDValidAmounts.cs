@@ -4,11 +4,8 @@
     {
         public int id { get; set; }
         public decimal Amount { get; set; }
-
-        //public ltb_twoDValidAmounts(int id_, decimal Amount_)
-        //{
-        //    this.id = id_;
-        //    this.Amount = Amount_;
-        //}
+        public decimal WinStraight{ get; set; }
+        public decimal WinRamble { get; set; }
+        public decimal WinPompi { get; set; }
     }
 }

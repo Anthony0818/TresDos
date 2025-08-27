@@ -52,25 +52,36 @@ namespace TresDos.Infrastructure.Repositories
             // This method combines the logic for both RAMBLE and STRAIGHT types
             decimal result;
 
-            if (typeCode == "R")
+            if (firstDigit == secondDigit)
             {
-                 result = await _context.tb_TwoD
-                    .Where(e => e.Type == typeCode &&
-                                e.DrawType == drawType &&
+                result = await _context.tb_TwoD
+                    .Where(e => e.DrawType == drawType &&
                                 e.DrawDate.Date == drawDate.Date &&
-                               ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
-                                (e.FirstDigit == secondDigit && e.SecondDigit == firstDigit)))
+                                e.FirstDigit == firstDigit &&
+                                e.SecondDigit == secondDigit)
                     .SumAsync(e => e.Amount);
             }
             else
             {
-                result= await _context.tb_TwoD
-                        .Where(e => e.Type == typeCode &&
-                                    e.DrawType == drawType &&
-                                    e.DrawDate.Date == drawDate.Date &&
-                                   ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
-                                    (e.FirstDigit == secondDigit && e.SecondDigit == secondDigit)))
-                        .SumAsync(e => e.Amount);
+                if (typeCode == "R")
+                {
+                    result = await _context.tb_TwoD
+                       .Where(e => e.Type == typeCode &&
+                                   e.DrawType == drawType &&
+                                   e.DrawDate.Date == drawDate.Date &&
+                                  ((e.FirstDigit == firstDigit && e.SecondDigit == secondDigit) ||
+                                   (e.FirstDigit == secondDigit && e.SecondDigit == firstDigit)))
+                       .SumAsync(e => e.Amount);
+                }
+                else
+                {
+                    result = await _context.tb_TwoD
+                            .Where(e => e.Type == typeCode &&
+                                        e.DrawType == drawType &&
+                                        e.DrawDate.Date == drawDate.Date &&
+                                        e.FirstDigit == firstDigit && e.SecondDigit == secondDigit)
+                            .SumAsync(e => e.Amount);
+                }
             }
             return result;
         }
@@ -150,6 +161,69 @@ namespace TresDos.Infrastructure.Repositories
                 _context.tb_TwoD.RemoveRange(entities);
                 await _context.SaveChangesAsync();
             }
+        }
+        public async Task<List<TwoDWinResultDto>?> GetTwoDWinnerByDrawTypeAndDate(string drawType, DateTime drawDate, int firstNumber, int secondNumber)
+        {
+            bool isPompiang = firstNumber == secondNumber;
+            var straightQuery = from a in _context.tb_TwoD
+                                join b in _context.ltb_twoDValidAmounts
+                                    on a.Amount equals b.Amount into gj
+                                from b in gj.DefaultIfEmpty()
+                                join c in _context.Users
+                                    on a.UserID equals c.Id into userJoin
+                                from c in userJoin.DefaultIfEmpty()
+                                where a.DrawDate == drawDate
+                                      && a.DrawType == drawType
+                                      && a.FirstDigit == firstNumber
+                                      && a.SecondDigit == secondNumber
+                                      && a.Type == "S"
+                                select new TwoDWinResultDto
+                                {
+                                    id = a.id,
+                                    Admin = (c.FirstName + " " + c.LastName).Trim(),
+                                    Bettor = a.Bettor,
+                                    FirstDigit = a.FirstDigit,
+                                    SecondDigit = a.SecondDigit,
+                                    WinType = isPompiang ? "POMPIANG" : "STRAIGHT",
+                                    Amount = a.Amount,
+                                    WinPrize = isPompiang ? b.WinPompi : b.WinStraight,
+                                    DrawDate = a.DrawDate,
+                                    DrawType = a.DrawType
+                                };
+
+            var rambleQuery = from a in _context.tb_TwoD
+                              join b in _context.ltb_twoDValidAmounts
+                                  on a.Amount equals b.Amount into gj
+                              from b in gj.DefaultIfEmpty()
+                              join c in _context.Users
+                                  on a.UserID equals c.Id into userJoin
+                              from c in userJoin.DefaultIfEmpty()
+                              where a.DrawDate == drawDate
+                                    && a.DrawType == drawType
+                                    && (
+                                        (a.FirstDigit == firstNumber && a.SecondDigit == secondNumber) ||
+                                        (a.FirstDigit == secondNumber && a.SecondDigit == firstNumber)
+                                       )
+                                    && a.Type == "R"
+                              select new TwoDWinResultDto
+                              {
+                                  id = a.id,
+                                  Admin = (c.FirstName + " " + c.LastName).Trim(),
+                                  Bettor = a.Bettor,
+                                  FirstDigit = a.FirstDigit,
+                                  SecondDigit = a.SecondDigit,
+                                  WinType = isPompiang ? "POMPIANG" : "RAMBLE",
+                                  Amount = a.Amount,
+                                  WinPrize = isPompiang ? b.WinPompi : b.WinRamble,
+                                  DrawDate = a.DrawDate,
+                                  DrawType = a.DrawType
+                              };
+
+            var result = await straightQuery
+                .Concat(rambleQuery)
+                .ToListAsync();
+
+            return result;
         }
     }
 }

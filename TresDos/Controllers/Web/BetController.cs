@@ -289,14 +289,14 @@ namespace TresDos.Controllers.Web
 
             // Set default selected draw type if not already set
             if (model.DrawDate != DateTime.MinValue)
-                drawDateFinal = model.DrawDate;
+                drawDateFinal = model.DrawDate + now.TimeOfDay;
             else
                 drawDateFinal = now;
 
-            //// Suppose drawDateFinal is an existing DateTime
-            //var newTime = new TimeSpan(15, 30, 0); // {Hour}:{Mins} PM
-            //// Override the time part by creating a new DateTime
-            //drawDateFinal = drawDateFinal.Date + newTime;
+            // Suppose drawDateFinal is an existing DateTime
+            var newTime = new TimeSpan(20, 30, 0); // {Hour}:{Mins} PM
+            // Override the time part by creating a new DateTime
+            drawDateFinal = drawDateFinal.Date + newTime;
 
             // Find the next draw based on current time and draw settings
             var currentDraw = drawSettings
@@ -327,17 +327,17 @@ namespace TresDos.Controllers.Web
 
             model.ValidAmountsConcat = validAmounts.Count > 0 ? string.Join(",", validAmounts): string.Empty;
 
-            // Determine if betting is allowed
-            if (drawDateFinal.Date != now.Date)
-                model.IsBetAllowed = false;
-            else
-            {
-                // Check if the current time is before the cut-off time
-                if (now.TimeOfDay < model.DrawCutOffTime)
-                    model.IsBetAllowed = true;
-                else
-                    model.IsBetAllowed = false;
-            }
+            //// Determine if betting is allowed
+            //if (drawDateFinal.Date != now.Date)
+            //    model.IsBetAllowed = false;
+            //else
+            //{
+            //    // Check if the current time is before the cut-off time
+            //    if (now.TimeOfDay < model.DrawCutOffTime)
+            //        model.IsBetAllowed = true;
+            //    else
+            //        model.IsBetAllowed = false;
+            //}
         }
         [Route("Bet/2d")]
         public async Task<IActionResult> TwoD()
@@ -372,7 +372,6 @@ namespace TresDos.Controllers.Web
                 HashSet<string> bettorNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 HashSet<string> localDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 string bettorName = string.Empty;
-                model.SelectedAgentText = model.SelectedAgentText;
 
                 var validAmounts = _twoDValidAmounts.GetDataAsync().Result.Select(o => o.Amount).ToList();
                 int twoDMin = _configuration.GetValue<int>("BetSettings:TwoDMin");
