@@ -269,11 +269,13 @@ namespace TresDos.Controllers.Web
         #region 2D
         private async Task InitializeTwoDComponents(TwoDViewModel model)
         {
+            // Load Draw Settings
             var drawSettings = await _drawSettings.GetDataAsync();
             var filteredDrawSettings = drawSettings
                 .Where(ds => ds.DrawType.Contains("2D"))
                 .ToList();
 
+            // Populate DrawTypeOptions
             model.DrawTypeOptions = filteredDrawSettings
                 .Select(ds => new SelectListItem
                 {
@@ -281,40 +283,39 @@ namespace TresDos.Controllers.Web
                     Value = ds.DrawType
                 }).ToList();
 
+            // Get current Philippine time
             DateTime now = _dateTimeHelper.GetPhilippineTime();
             DateTime drawDateFinal;
-            string drawTypeFinal = string.Empty;
 
+            // Set default selected draw type if not already set
             if (model.DrawDate != DateTime.MinValue)
                 drawDateFinal = model.DrawDate;
             else
                 drawDateFinal = now;
 
-            // Get the next available draw (i.e., CutOffTime is still in the future)
+            //// Suppose drawDateFinal is an existing DateTime
+            //var newTime = new TimeSpan(15, 30, 0); // {Hour}:{Mins} PM
+            //// Override the time part by creating a new DateTime
+            //drawDateFinal = drawDateFinal.Date + newTime;
+
+            // Find the next draw based on current time and draw settings
             var currentDraw = drawSettings
                 .Where(d => drawDateFinal.TimeOfDay < d.CutOffTime)
                 .OrderBy(d => d.CutOffTime)
                 .FirstOrDefault();
 
-            if (!string.IsNullOrEmpty(model.DrawType))
+            // If no upcoming draw is found for today, check if there are any draws at all
+            if (currentDraw == null)
             {
-                var drawTypeQS = drawSettings.FirstOrDefault(a => a.DrawType == model.DrawType);
-                if (drawTypeQS != null)
-                {
-                    drawTypeFinal = drawTypeQS.DrawType;
-
-                    currentDraw = drawSettings
-                        .Where(d => d.DrawType == drawTypeFinal)
-                        .OrderBy(d => d.CutOffTime)
-                        .FirstOrDefault();
-                }
+                // No upcoming cutoff time; get the latest cutoff time available
+                currentDraw = drawSettings
+                    .OrderByDescending(d => d.CutOffTime)
+                    .FirstOrDefault();
             }
-            else
-                drawTypeFinal = currentDraw?.DrawType ?? "2D 2PM Draw";
 
             model.DrawDate = drawDateFinal.Date;
 
-            model.DrawType = drawTypeFinal;
+            model.DrawType = currentDraw?.DrawType ?? "2D 2PM Draw";
 
             model.DrawTime = currentDraw?.DrawTime ?? drawDateFinal.TimeOfDay;
 
@@ -326,7 +327,7 @@ namespace TresDos.Controllers.Web
 
             model.ValidAmountsConcat = validAmounts.Count > 0 ? string.Join(",", validAmounts): string.Empty;
 
-
+            // Determine if betting is allowed
             if (drawDateFinal.Date != now.Date)
                 model.IsBetAllowed = false;
             else
@@ -360,8 +361,6 @@ namespace TresDos.Controllers.Web
                 return RedirectToAction("Login", "Auth");
 
             await InitializeTwoDComponents(model);
-
-            //var batch = new TwoDViewModel();
 
             if (action == "Validate")
             {
@@ -402,6 +401,7 @@ namespace TresDos.Controllers.Web
                     if (currentEntry == null)
                         continue;
 
+                    // Parse and validate the bet line
                     var bet = ParseTwoDBetLine(line, validAmounts, twoDMin, twoDMax);
                     if (bet.Combination != null)
                     {
@@ -565,18 +565,11 @@ namespace TresDos.Controllers.Web
                         {
                             var result = await response.Content.ReadFromJsonAsync<BulkInsertTwoDEntriesResponseDto>();
 
-                            //if (result?.EntriesInserted != null)
-                            //    ViewBag.EntriesInserted = result.EntriesInserted;
-
-                            //if (result?.EntriesWithError != null)
-                            //    ViewBag.EntriesWithError = result.EntriesWithError;
-
                             if (result?.EntriesResults != null)
                             {
                                 // Serialize and store in session
                                 HttpContext.Session.SetString("TwoDSubmitResult", JsonConvert.SerializeObject(result?.EntriesResults));
-                                //return RedirectToAction("TwoDResult");
-                                //return Redirect("/Bet/2dResult");
+                                
                                 return RedirectToAction("2dResult", "Bet");
                             }
                         }
