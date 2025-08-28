@@ -22,7 +22,7 @@ using TresDos.Services;
 
 namespace TresDos.Controllers.Web
 {
-    public class BetController : Controller
+    public class TwoDController : Controller
     {
         private readonly ICacheDrawSettings _drawSettings;
         private readonly ICacheTwoDValidAmount _twoDValidAmounts;
@@ -30,7 +30,7 @@ namespace TresDos.Controllers.Web
         private readonly IConfiguration _configuration;
         DateTimeHelper _dateTimeHelper = new DateTimeHelper();
         //private static readonly List<decimal> ValidAmounts = Enumerable.Range(1, 60).Select(i => i * 5m).ToList(); // 10 to 300
-        public BetController(
+        public TwoDController(
             IConfiguration configuration,
             IHttpClientFactory clientFactory, 
             ICacheDrawSettings drawSettings, 

@@ -221,6 +221,7 @@ namespace TresDos.Infrastructure.Repositories
 
             var result = await straightQuery
                 .Concat(rambleQuery)
+                .OrderByDescending(o => o.Admin)
                 .ToListAsync();
 
             return result;
