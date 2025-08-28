@@ -37,5 +37,6 @@ namespace TresDos.Core.Interfaces
             DateTime drawDate);
         Task<List<TwoDBetsDto>?> GetBetsByUserIdDrawTypeDrawDate(int userId, string drawType, DateTime drawDate);
         public Task RemoveEntriesAsync(BulkDeleteEntriesRequest Guids);
+        public Task<List<TwoDWinResultDto>?> GetTwoDWinnerByDrawTypeAndDate(string drawType, DateTime drawDate, int firstNumber, int secondNumber);
     }
 }

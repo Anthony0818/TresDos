@@ -56,4 +56,19 @@ public class TwoDApiController : ControllerBase
 
         return Ok(result);
     }
+    [HttpGet("GetTwoDWinners")]
+    public async Task<IActionResult> GetTwoDWinners(
+        string drawType,
+        string drawDate,
+        int firstDigit,
+        int secondDigit)
+    {
+        var query = new GetTwoDWinnersQuery(drawType, Convert.ToDateTime(drawDate), firstDigit,secondDigit);
+        var winners = await _mediator.Send(query);
+
+        if (winners == null)
+            return NotFound();
+
+        return Ok(winners);
+    }
 }

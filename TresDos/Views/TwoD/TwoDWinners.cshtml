@@ -1,0 +1,99 @@
+﻿@{
+    ViewBag.Title = "2D Winner";
+}
+@using TresDos.Application.DTOs
+@using TresDos.Application.ViewModel.BetModel
+@model TwoDWinnersViewModel
+@using (Html.BeginForm("Winners", "2d", FormMethod.Post))
+{
+    <div class="container">
+        <div class="row justify-content-center mb-3">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="row row-cols-2 g-3">
+                    <div class="col">
+                        @Html.TextBoxFor(model => model.DrawDate, "{0:yyyy-MM-dd}", 
+                            new { type = "date", @class = "form-control", onchange = "this.form.submit();" })
+                    </div>
+                    <div class="col">
+                        @Html.DropDownListFor(m => m.DrawType, Model.DrawTypeOptions, 
+                            new { @class = "form-select", onchange = "this.form.submit();" })
+                    </div>
+                </div>
+                <div class="row row-cols-2 g-3">
+                    <div class="col">
+                        First Digit
+                        @Html.TextBoxFor(model => model.FirstDigit,
+                                 new { type = "text", @class = "form-control" })
+                    </div>
+                    <div class="col">
+                        Second Digit
+                        @Html.TextBoxFor(model => model.SecondDigit,
+                                 new { type = "text", @class = "form-control" })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-3">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>2D - Winners</span>
+                    <span><strong>@Model.DrawDate.ToString("dddd, MMMM dd, yyyy")</strong></span>
+                </div>
+                <div class="card-body">
+                    <button type="submit" name="action" value="Generate" class="btn btn-primary w-100 w-md-auto">
+                        Generate
+                    </button>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Admin</th>
+                                <th>Bettor</th>
+                                <th>First Digit</th>
+                                <th>Second Digit</th>
+                                <th>Win Type</th>
+                                <th>Amount</th>
+                                <th>Win Prize</th>
+                                <th>Draw Date</th>
+                                <th>Draw Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Winners.Count > 0)
+                            {
+                                @foreach (var item in Model.Winners)
+                                {
+                                    <tr>
+                                        <td>@item.Admin</td>
+                                        <td>@item.Bettor</td>
+                                        <td>@item.FirstDigit</td>
+                                        <td>@item.SecondDigit</td>
+                                        <td>@item.WinType</td>
+                                        <td>@item.Amount.ToString("N2")</td>
+                                        <td>@item.WinPrize?.ToString("N2")</td>
+                                        <td>@item.DrawDate.ToString("yyyy-MM-dd")</td>
+                                        <td>@item.DrawType</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="9" class="text-center">No winners found for the selected date and draw type.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+     </div>
+}
+
+@section Scripts {
+
+    <!-- Enables client-side validation -->
+    <partial name="_ValidationScriptsPartial" />
+}
