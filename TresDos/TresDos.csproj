@@ -25,16 +25,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="Views\Bet\ResultBackup.cshtml" />
-    <Content Remove="Views\Bet\ResultThreeD.cshtml" />
-    <Content Remove="Views\Bet\ResultTwoD.cshtml" />
-    <Content Remove="Views\Bet\ThreeD.cshtml" />
+    <Content Remove="Views\TwoD\ResultBackup.cshtml" />
+    <Content Remove="Views\TwoD\ResultThreeD.cshtml" />
+    <Content Remove="Views\TwoD\ResultTwoD.cshtml" />
+    <Content Remove="Views\TwoD\ThreeD.cshtml" />
     <Content Remove="wwwroot\images\2D.png" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include=".github\workflows\docker-publish.yml" />
-    <None Include="Views\Bet\TwoDResult.cshtml" />
+    <None Include="Views\TwoD\TwoDBetResult.cshtml" />
   </ItemGroup>
 
   <ItemGroup>

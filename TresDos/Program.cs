@@ -223,6 +223,10 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Auth}/{action=Login}/{id?}");
 
+app.MapControllerRoute(
+    name: "2d",
+    pattern: "2d/{action=View2D}/{id?}",
+    defaults: new { controller = "TwoD" });
 app.Run();
 
 #endregion

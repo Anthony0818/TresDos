@@ -41,8 +41,9 @@ namespace TresDos.Controllers.Web
                 HttpContext.Session.SetString("UserLastName", responseBody?.UserDetail.LastName ?? string.Empty);
                 HttpContext.Session.SetInt32("UserCommission", responseBody?.UserDetail.CommissionPercentage ?? 0);
                 HttpContext.Session.SetInt32("UserParentId", responseBody?.UserDetail.ParentId ?? 0);
+                HttpContext.Session.SetString("UserRole", responseBody?.UserDetail.Role ?? string.Empty);
 
-                return RedirectToAction("2d", "Bet");
+                return RedirectToAction("Bet","2d");
             }
             else
             {

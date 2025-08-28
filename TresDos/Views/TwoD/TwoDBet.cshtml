@@ -471,7 +471,7 @@
             if (!$.fn.dataTable.isDataTable('#betsTable')) {
                 var table = $('#betsTable').DataTable({
                     ajax: {
-                        url: '@Url.Action("LoadTwoDBetsAsync", "Bet")',
+                        url: '@Url.Action("LoadTwoDBetsAsync", "2d")',
                         type: 'GET',
                         dataType: 'json',
                         headers: {
@@ -564,7 +564,7 @@
                     }
                     
                     $.ajax({
-                        url: '@Url.Action("DeleteSelectedBets", "Bet")',
+                        url: '@Url.Action("DeleteSelectedBets", "2d")',
                         type: 'POST',
                         headers: {
                             'RequestVerificationToken': token

@@ -22,6 +22,7 @@ using TresDos.Services;
 
 namespace TresDos.Controllers.Web
 {
+    [Route("2d")]
     public class TwoDController : Controller
     {
         private readonly ICacheDrawSettings _drawSettings;
@@ -339,8 +340,8 @@ namespace TresDos.Controllers.Web
             //        model.IsBetAllowed = false;
             //}
         }
-        [Route("Bet/2d")]
-        public async Task<IActionResult> TwoD()
+        [Route("Bet")]
+        public async Task<IActionResult> TwoDBet()
         {
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
@@ -352,9 +353,9 @@ namespace TresDos.Controllers.Web
 
             return View(model);
         }
-        [Route("Bet/2d")]
+        [Route("Bet")]
         [HttpPost]
-        public async Task<IActionResult> TwoD(TwoDViewModel model, string action)
+        public async Task<IActionResult> TwoDBet(TwoDViewModel model, string action)
         {
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
@@ -569,7 +570,7 @@ namespace TresDos.Controllers.Web
                                 // Serialize and store in session
                                 HttpContext.Session.SetString("TwoDSubmitResult", JsonConvert.SerializeObject(result?.EntriesResults));
                                 
-                                return RedirectToAction("2dResult", "Bet");
+                                return RedirectToAction("Result", "2d");
                             }
                         }
                         else
@@ -580,7 +581,7 @@ namespace TresDos.Controllers.Web
                 }
             }
            
-            return View("TwoD", model);
+            return View("TwoDBet", model);
         }
         private BetLine ParseTwoDBetLine(string line, List<decimal> validAmounts, int twoDMin, int twoDMax)
         {
@@ -642,7 +643,7 @@ namespace TresDos.Controllers.Web
             return result;
         }
 
-        [Route("Bet/LoadTwoDBetsAsync")]
+        [Route("LoadTwoDBetsAsync")]
         [HttpGet]
         public async Task<IActionResult> LoadTwoDBetsAsync(string drawType)
         {
@@ -673,8 +674,8 @@ namespace TresDos.Controllers.Web
             }
         }
 
-        [Route("Bet/2dResult")]
-        public IActionResult TwoDResult()
+        [Route("Result")]
+        public IActionResult TwoDBetResult()
         {
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))
