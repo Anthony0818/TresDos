@@ -23,12 +23,12 @@
                     <div class="col">
                         First Digit
                         @Html.TextBoxFor(model => model.FirstDigit,
-                                 new { type = "text", @class = "form-control" })
+                                 new { type = "number", @min = "1", @max = "31", @class = "form-control" })
                     </div>
                     <div class="col">
                         Second Digit
                         @Html.TextBoxFor(model => model.SecondDigit,
-                                 new { type = "text", @class = "form-control" })
+                                 new { type = "number", @min = "1", @max = "31", @class = "form-control" })
                     </div>
                 </div>
             </div>

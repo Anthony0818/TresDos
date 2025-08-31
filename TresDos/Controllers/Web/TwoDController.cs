@@ -134,9 +134,9 @@ namespace TresDos.Controllers.Web
 
             // Find the next draw based on current time and draw settings
             var currentDraw = drawSettings
-                .Where(d => drawDateFinal.TimeOfDay < d.CutOffTime)
-                .OrderBy(d => d.CutOffTime)
-                .FirstOrDefault();
+                    .Where(d => drawDateFinal.TimeOfDay < d.CutOffTime)
+                    .OrderBy(d => d.CutOffTime)
+                    .FirstOrDefault();
 
             // If no upcoming draw is found for today, check if there are any draws at all
             if (currentDraw == null)
@@ -146,6 +146,9 @@ namespace TresDos.Controllers.Web
                     .OrderByDescending(d => d.CutOffTime)
                     .FirstOrDefault();
             }
+
+            if(model.DrawType != null)
+                currentDraw = drawSettings.FirstOrDefault(d => d.DrawType == model.DrawType);
 
             model.DrawDate = drawDateFinal.Date;
 
