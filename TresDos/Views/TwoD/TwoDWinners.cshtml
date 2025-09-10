@@ -46,7 +46,10 @@
                         Generate
                     </button>
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped">
+                    <table 
+                        id="tbWinners" 
+                        style="width:100%" 
+                        class="table table-bordered table-striped display nowrap">
                         <thead>
                             <tr>
                                 <th>Admin</th>
@@ -80,9 +83,9 @@
                             }
                             else
                             {
-                                <tr>
+                               @*  <tr>
                                     <td colspan="9" class="text-center">No winners found for the selected date and draw type.</td>
-                                </tr>
+                                </tr> *@
                             }
                         </tbody>
                     </table>
@@ -93,6 +96,53 @@
 }
 
 @section Scripts {
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#tbWinners').DataTable({
+                paging: false,
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        extend: 'pdfHtml5',
+                        title: '', // ❌ No default title
+                        orientation: 'portrait',
+                        pageSize: 'A4',
+                        customize: function (doc) {
+                            // ✅ Add a table as a header
+                            doc.content.splice(0, 0, {
+                                table: {
+                                    widths: ['*', '*'],
+                                    body: [
+                                        [
+                                            { text: 'Company: Acme Corp', bold: true, alignment: 'left' },
+                                            { text: 'Date: 2025-09-10', alignment: 'right' }
+                                        ]
+                                    ]
+                                },
+                                margin: [0, 0, 0, 10] // bottom margin after the header
+                            });
+
+                            doc.footer = function (currentPage, pageCount) {
+                                return {
+                                    text: 'Page ' + currentPage + ' of ' + pageCount,
+                                    alignment: 'center',
+                                    margin: [0, 10, 0, 0]
+                                };
+                            };
+
+                            doc.styles.tableHeader = {
+                                fillColor: '#2a3f54',
+                                color: 'white',
+                                bold: true,
+                                fontSize: 12
+                            };
+                        }
+                    }
+                ]
+            });
+        });
+    </script>
 
     <!-- Enables client-side validation -->
     <partial name="_ValidationScriptsPartial" />
