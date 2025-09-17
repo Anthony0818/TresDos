@@ -4,6 +4,12 @@
 @using TresDos.Application.DTOs
 @using TresDos.Application.ViewModel.BetModel
 @model TwoDWinnersViewModel
+
+<style>
+    #tbWinners {
+        width: 100% !important;
+    }
+</style>
 @using (Html.BeginForm("Winners", "2d", FormMethod.Post))
 {
     <div class="container">
@@ -54,13 +60,11 @@
                             <tr>
                                 <th>Admin</th>
                                 <th>Bettor</th>
-                                <th>First Digit</th>
-                                <th>Second Digit</th>
-                                <th>Win Type</th>
-                                <th>Amount</th>
+                                <th>Bet</th>
+                                <th>Remarks</th>
                                 <th>Win Prize</th>
-                                <th>Draw Date</th>
-                                <th>Draw Type</th>
+                               @*  <th>Draw Date</th>
+                                <th>Draw Type</th> *@
                             </tr>
                         </thead>
                         <tbody>
@@ -71,13 +75,15 @@
                                     <tr>
                                         <td>@item.Admin</td>
                                         <td>@item.Bettor</td>
-                                        <td>@item.FirstDigit</td>
-                                        <td>@item.SecondDigit</td>
+                                        @{
+                                            var amountStr = item.Amount.ToString("N2").Replace(".00", "");
+                                            var firstLetter = string.IsNullOrEmpty(item.WinType) ? "" : item.WinType[0].ToString();
+                                        }
+                                        <td>@item.FirstDigit - @item.SecondDigit = <span>@amountStr</span><span>@firstLetter</span></td>
                                         <td>@item.WinType</td>
-                                        <td>@item.Amount.ToString("N2")</td>
                                         <td>@item.WinPrize?.ToString("N2")</td>
-                                        <td>@item.DrawDate.ToString("yyyy-MM-dd")</td>
-                                        <td>@item.DrawType</td>
+                                       @*  <td>@item.DrawDate.ToString("yyyy-MM-dd")</td>
+                                        <td>@item.DrawType</td> *@
                                     </tr>
                                 }
                             }
@@ -100,6 +106,7 @@
     <script type="text/javascript">
         $(document).ready(function () {
             $('#tbWinners').DataTable({
+                autoWidth: false,
                 paging: false,
                 dom: 'Bfrtip',
                 buttons: [
@@ -109,17 +116,35 @@
                         orientation: 'portrait',
                         pageSize: 'A4',
                         customize: function (doc) {
+                            
+                            // Optional: Set column widths to auto in the table
+                            var table = doc.content.find(c => c.table); // find the data table
+
+                            if (table) {
+                                var columnCount = table.table.body[0].length;
+
+                                // Set each column width to '*'
+                                table.table.widths = Array(columnCount).fill('*');
+                            }
+
                             // ✅ Add a table as a header
                             doc.content.splice(0, 0, {
                                 table: {
-                                    widths: ['*', '*'],
+                                    widths: ['*', '*', '*'],
                                     body: [
                                         [
-                                            { text: 'Company: Acme Corp', bold: true, alignment: 'left' },
-                                            { text: 'Date: 2025-09-10', alignment: 'right' }
+                                            { text: '@Model.DrawDate.ToString("dddd, MMMM dd, yyyy")', bold: true, alignment: 'left' },
+                                            { text: '' },
+                                            { text: '@Model.DrawType', alignment: 'right', fontSize: 15 }
+                                        ],
+                                        [
+                                            { text: '@Model.FirstDigit - @Model.SecondDigit', bold: true, alignment: 'left', fontSize: 15 },
+                                            { text: '@Model.Winners.Count().ToString() Winners', bold: true, alignment: 'left', fontSize: 15 },
+                                            { text: 'PHP @Model.Winners.Sum(a => a.WinPrize)?.ToString("N2")', alignment: 'right', fontSize: 15 }
                                         ]
                                     ]
                                 },
+                                layout: 'noBorders',
                                 margin: [0, 0, 0, 10] // bottom margin after the header
                             });
 
