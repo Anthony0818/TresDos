@@ -1,0 +1,26 @@
+var targetDate = new DateTime(2025, 8, 26);
+var userId = someUserId; // This should be the actual user ID (int, Guid, etc.)
+
+var query = from s in context.TwoD
+            where s.DrawDate.Date == targetDate.Date
+                  && s.User.Id == userId
+            group s by new 
+            {
+                s.User.Id,
+                s.User.UserName,
+                s.User.CommissionPercentage
+            } into g
+            orderby g.Key.UserName
+            select new
+            {
+                UserId = g.Key.Id,
+                UserName = g.Key.UserName,
+                TwoD2PM = g.Where(x => x.DrawType == "2D 2PM Draw").Sum(x => x.Amount),
+                TwoD5PM = g.Where(x => x.DrawType == "2D 5PM Draw").Sum(x => x.Amount),
+                TwoD9PM = g.Where(x => x.DrawType == "2D 9PM Draw").Sum(x => x.Amount),
+                TotalSales = g.Sum(x => x.Amount),
+                CommissionPercentage = g.Key.CommissionPercentage,
+                Commission = g.Sum(x => x.Amount) * (g.Key.CommissionPercentage / 100.0)
+            };
+
+var result = query.ToList();
