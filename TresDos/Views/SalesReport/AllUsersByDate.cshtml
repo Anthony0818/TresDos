@@ -1,0 +1,69 @@
+﻿@{
+    ViewBag.Title = "Sales Report";
+}
+@using TresDos.Application.DTOs.Reports
+@model SalesReportViewModel
+
+@using (Html.BeginForm("AllUsersByDate", "SalesReport", FormMethod.Post))
+{
+    <div class="container">
+        <div class="row justify-content-center mb-3">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="row row-cols-2 g-3">
+                    <div class="col">
+                        @Html.TextBoxFor(model => model.DrawDate, "{0:yyyy-MM-dd}",
+                                 new { type = "date", @class = "form-control", onchange = "this.form.submit();" })
+                        @Html.DropDownListFor(m => m.UserId, new SelectList(Model.Users, "Id", "Username"),
+                                 new { @class = "form-select", onchange = "this.form.submit();" })
+                    </div>
+               </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-3">        
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Sales Report</span>
+                    @* <span><strong>@Model.DrawDate.ToString("dddd, MMMM dd, yyyy")</strong></span> *@
+                </div>
+                <div class="card-body">
+                <div class="table-responsive">
+                    <table 
+                        id="tbWinners" 
+                        style="width:100%" 
+                        class="table table-bordered table-striped display nowrap">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>2D 2PM</th>
+                                <th>2D 5PM</th>
+                                <th>2D 9PM</th>
+                                <th>Total Sales</th>
+                                <th>Commission #</th>
+                                <th>Commission</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.SalesPerUser.Count > 0)
+                            {
+                                @foreach (var item in Model.SalesPerUser)
+                                {
+                                    <tr>
+                                        <td>@item.Username</td>
+                                        <td>@item.TwoD2PM</td>
+                                        <td>@item.TwoD5PM</td>
+                                        <td>@item.TwoD9PM</td>
+                                        <td>@item.TotalSales.ToString("N2")</td>
+                                        <td>@item.CommissionPercentage%</td>
+                                        <td>@item.Commission?.ToString("N2")</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            </div>
+     </div>
+}

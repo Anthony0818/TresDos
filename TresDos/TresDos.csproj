@@ -19,6 +19,8 @@
 
   <ItemGroup>
     <Compile Remove="Application\DTOs\TokenResponse.cs" />
+    <Compile Remove="Application\Feature\Reports\QueriesHandlers\GetProductByIdHandler.cs" />
+    <Compile Remove="Application\Feature\Reports\Queries\GetAllUserSalesByUserIdQuery.cs" />
     <Compile Remove="Application\Feature\Users\QueriesHandlers\GetProductByIdHandler.cs" />
     <Compile Remove="Application\Feature\Users\Queries\GetProductByIdQuery.cs" />
     <Compile Remove="Application\ViewModel\BetModel\TwoDResultViewModel.cs" />
@@ -34,6 +36,7 @@
 
   <ItemGroup>
     <None Include=".github\workflows\docker-publish.yml" />
+    <None Include="D:\Personal\GitHub\TresDos\TresDos\Application\ViewModel\.editorconfig" />
     <None Include="Views\TwoD\TwoDBetResult.cshtml" />
   </ItemGroup>
 
@@ -63,6 +66,10 @@
   <ItemGroup>
     <Folder Include="Application\Feature\ThreeD\" />
     <Folder Include="Application\ViewModel\DropDownModel\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="D:\Personal\GitHub\TresDos\TresDos\Application\ViewModel\.editorconfig" />
   </ItemGroup>
 
 </Project>

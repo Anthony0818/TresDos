@@ -74,7 +74,7 @@
                                 {
                                     <tr>
                                         <td>@item.Admin</td>
-                                        <td>@item.Bettor</td>
+                                        <td>@item.Bettor?.Substring(1)</td>
                                         @{
                                             var amountStr = item.Amount.ToString("N2").Replace(".00", "");
                                             var firstLetter = string.IsNullOrEmpty(item.WinType) ? "" : item.WinType[0].ToString();

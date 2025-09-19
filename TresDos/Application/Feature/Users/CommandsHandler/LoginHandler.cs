@@ -46,7 +46,8 @@ namespace TresDos.Application.Feature.Users.CommandsHandler
                     MiddleName = user.MiddleName,
                     LastName = user.LastName,
                     CommissionPercentage = user.CommissionPercentage,
-                    ParentId = user.ParentId
+                    ParentId = user.ParentId,
+                    Role = user.Role,
                 }
             };
         }

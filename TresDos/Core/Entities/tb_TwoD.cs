@@ -14,5 +14,8 @@
         public DateTime DrawDate { get; set; }
         public int CreatedBy { get; set; }
         public Guid BatchId { get; set; }
+
+        // Navigation properties
+        public virtual User User { get; set; }
     }
 }

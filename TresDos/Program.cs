@@ -15,6 +15,7 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using TresDos.Services;
 using TresDos.Application.Feature.DrawSettings.Queries;
+using TresDos.Application.Feature.Reports.Queries;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +50,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITwoDRepository, TwoDRepository>();
 builder.Services.AddScoped<IDrawSetingsRepository, DrawSetingsRepository>();
 builder.Services.AddScoped<ITwoDValidAmountsRepository, TwoDValidAmountsRepository>();
+builder.Services.AddScoped<ISalesReportRepository, SalesReportRepository>();
 
 //Services
 builder.Services.AddSingleton<ITokenService,TokenService>();
@@ -72,6 +74,9 @@ builder.Services.AddMediatR(cfg =>
 
     //TwoD Valid Amounts
     cfg.RegisterServicesFromAssembly(typeof(GetAllTwoDValidAmountsQuery).Assembly);
+
+    //Sales Report
+    cfg.RegisterServicesFromAssembly(typeof(GetAllUserSalesQuery).Assembly);
 });
 
 #endregion

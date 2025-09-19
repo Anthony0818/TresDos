@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SQLitePCL;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -158,20 +159,20 @@ namespace TresDos.Controllers.Web
 
             model.DrawCutOffTime = currentDraw?.CutOffTime ?? drawDateFinal.TimeOfDay; // Default to 30 minutes after DrawTime if not set
 
-            //#region Allowed betting time logic
-            ////Comment out to ByPass Time for Testing
-            //// Determine if betting is allowed
-            //if (drawDateFinal.Date != now.Date)
-            //    model.IsBetAllowed = false;
-            //else
-            //{
-            //    // Check if the current time is before the cut-off time
-            //    if (now.TimeOfDay < model.DrawCutOffTime)
-            //        model.IsBetAllowed = true;
-            //    else
-            //        model.IsBetAllowed = false;
-            //}
-            //#endregion
+            #region Allowed betting time logic
+            //Comment out to ByPass Time for Testing
+            // Determine if betting is allowed
+            if (drawDateFinal.Date != now.Date)
+                model.IsBetAllowed = false;
+            else
+            {
+                // Check if the current time is before the cut-off time
+                if (now.TimeOfDay < model.DrawCutOffTime)
+                    model.IsBetAllowed = true;
+                else
+                    model.IsBetAllowed = false;
+            }
+            #endregion
         }
         [Route("Bet")]
         public async Task<IActionResult> TwoDBet()
@@ -371,9 +372,8 @@ namespace TresDos.Controllers.Web
             else if (action == "Submit") //Submitting of Bets
             {
                 HttpContext.Session.SetString("TwoDSubmitResult", string.Empty);
-                //var validEntries = new List<TwoDDto>();
-                // Get updated valid bets from ViewBag if available
-                //var updatedValidBets = ViewBag.UpdatedValidBets as List<Entry>; // Replace Bet with your actual type
+
+                // Retrieve the valid bets from session
                 var betsJson = HttpContext.Session.GetString("UpdatedValidBets");
 
                 List<TwoDDto>? updatedValidBets = string.IsNullOrEmpty(betsJson)
@@ -606,6 +606,29 @@ namespace TresDos.Controllers.Web
             // Get current Philippine time
             DateTime now = _dateTimeHelper.GetPhilippineTime();
             model.DrawDate = now.Date;
+            // Get current time as TimeSpan
+            TimeSpan currentTime = now.TimeOfDay;
+
+            // Filter draws that have already occurred today
+            var pastDraws = filteredDrawSettings
+                .Where(d => d.DrawTime <= currentTime)
+                .OrderByDescending(d => d.DrawTime)
+            .ToList();
+
+            var mostRecentDraw = pastDraws.FirstOrDefault();
+
+            if (mostRecentDraw != null)
+            {
+                Console.WriteLine($"Most recent past draw: {mostRecentDraw.DrawType} at {mostRecentDraw.DrawTime}");
+                model.DrawType = mostRecentDraw.DrawType;
+            }
+            else
+            {
+                // No draw has happened today, get the last draw from yesterday
+                var lastDraw = filteredDrawSettings.OrderByDescending(d => d.DrawTime).First();
+                var yesterday = DateTime.Today.AddDays(-1).Add(lastDraw.DrawTime);
+                Console.WriteLine($"Most recent past draw: {lastDraw.DrawType} at {yesterday}");
+            }
         }
         [Route("Winners")]
         [HttpGet]
