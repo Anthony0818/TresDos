@@ -6,7 +6,7 @@ namespace TresDos.Core.Interfaces
 {
     public interface ISalesReportRepository
     {
-        Task<IEnumerable<SalesReportResponseDTO>> GetAllUsersSalesReport(DateTime DrawDate);
+        Task<IEnumerable<SalesReportResponseDTO>> GetAllUsersSalesReport(string UserId,DateTime DrawDate);
     }
 }
 

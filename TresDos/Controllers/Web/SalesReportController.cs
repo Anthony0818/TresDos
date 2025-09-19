@@ -85,7 +85,7 @@ namespace TresDos.Controllers.Web
                 new AuthenticationHeaderValue("Bearer", HttpContext.Session.GetString("JWToken"));
 
             var response = await client.GetAsync(
-                $"api/SalesReportApi/AllUsersByDate?drawDate={model.DrawDate.ToString("MM/dd/yyyy")}"
+                $"api/SalesReportApi/AllUsersByDate?drawDate={model.DrawDate.ToString("MM/dd/yyyy")}&UserId={model.UserId}"
             );
 
             if (response.IsSuccessStatusCode)

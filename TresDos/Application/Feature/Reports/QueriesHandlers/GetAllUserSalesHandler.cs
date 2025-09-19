@@ -16,7 +16,7 @@ namespace TresDos.Application.Feature.Reports.QueriesHandlers
         }
         public async Task<List<SalesReportResponseDTO>> Handle(GetAllUserSalesQuery request, CancellationToken cancellationToken)
         {
-            var result = await _repo.GetAllUsersSalesReport(request.DrawDate);
+            var result = await _repo.GetAllUsersSalesReport(request.UserId, request.DrawDate);
             return result.ToList();
         }
     }
