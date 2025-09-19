@@ -12,9 +12,10 @@
                 <div class="row row-cols-2 g-3">
                     <div class="col">
                         @Html.TextBoxFor(model => model.DrawDate, "{0:yyyy-MM-dd}",
-                                 new { type = "date", @class = "form-control", onchange = "this.form.submit();" })
+                                          new { type = "date", @class = "form-control", onchange = "this.form.submit();" })
                         @Html.DropDownListFor(m => m.UserId, new SelectList(Model.Users, "Id", "Username"),
-                                 new { @class = "form-select", onchange = "this.form.submit();" })
+                                     new { @class = "form-select", onchange = "this.form.submit();" })
+                       
                     </div>
                </div>
             </div>

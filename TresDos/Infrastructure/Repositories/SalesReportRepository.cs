@@ -16,7 +16,7 @@ namespace TresDos.Infrastructure.Repositories
 
         public async Task<IEnumerable<SalesReportResponseDTO>> GetAllUsersSalesReport(string UserId, DateTime DrawDate)
         {
-            if (UserId == "All")
+            if (UserId == "0")
             {
                 var result = await _context.tb_TwoD
                     .Where(t => t.DrawDate.Date == DrawDate)

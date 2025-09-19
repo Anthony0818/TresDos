@@ -44,7 +44,23 @@ namespace TresDos.Controllers.Web
 
             if (response.IsSuccessStatusCode)
             {
-                model.Users = await response.Content.ReadFromJsonAsync<List<User>>() ?? new List<User>();
+                var allUsers = await response.Content.ReadFromJsonAsync<List<User>>() ?? new List<User>();
+
+                string userRole = HttpContext.Session.GetString("UserRole") ?? string.Empty;
+                if(userRole == "SupperAdmin" || userRole == "Admin")
+                {
+                    model.Users = allUsers;
+                    model.Users.Insert(0, new User
+                    {
+                        Id = 0,
+                        Username = "All"
+                    });
+                }
+                else
+                {
+                    int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
+                    model.Users = allUsers.Where(u => u.Id == userId).ToList();
+                }
             }
             else
             {
@@ -52,29 +68,29 @@ namespace TresDos.Controllers.Web
                 ViewBag.Error = error;
                 model.Users = new List<User>();
             }
-
-            model.Users.Insert(0, new User
-            {
-                Id = 0,           // or some special value representing "All"
-                Username = "All"
-            });
-            model.DrawDate = _dateTimeHelper.GetPhilippineTime();
             model.SalesPerUser = new List<SalesReportResponseDTO>();
         }
 
-        [HttpGet]
-        public async Task<IActionResult> AllUsersByDate()
-        {
-            var model = new SalesReportViewModel();
+        //[HttpGet]
+        //public async Task<IActionResult> AllUsersByDate()
+        //{
+        //    var model = new SalesReportViewModel();
 
-            await ReferenceViewModel(model);
+        //    await ReferenceViewModel(model);
 
-            return View(model);
-        }
-        [HttpPost]
+        //    model.DrawDate = _dateTimeHelper.GetPhilippineTime();
+        //    model.UserId = "0";
+
+        //    return View(model);
+        //}
         public async Task<IActionResult> AllUsersByDate(SalesReportViewModel model)
         {
             await ReferenceViewModel(model);
+
+            if(model.UserId == null)
+                model.UserId = "0";
+            if(model.DrawDate == DateTime.MinValue || model.DrawDate == null)
+                model.DrawDate = _dateTimeHelper.GetPhilippineTime();
 
             var token = HttpContext.Session.GetString("JWToken");
             if (string.IsNullOrEmpty(token))

@@ -18,9 +18,9 @@ public class SalesReportApiController : ControllerBase
 
     [HttpGet("AllUsersByDate")]
     public async Task<IActionResult> AllUsersByDate(
-         string drawDate)
+         string UserId, string drawDate)
     {
-        var query = new GetAllUserSalesQuery(Convert.ToDateTime(drawDate));
+        var query = new GetAllUserSalesQuery(UserId, Convert.ToDateTime(drawDate));
         var result = await _mediator.Send(query);
 
         if (result == null)
